@@ -1,0 +1,29 @@
+{
+  "name": "ROUND 1",
+  "ballSpeed": 90,
+  "grid": {
+    "cols": 13,
+    "rows": 6,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 240
+  },
+  "rows": [
+    "NNNNNNNNNNNNN",
+    "RRRRRRRRRRRRR",
+    "YYYYYYYYYYYYY",
+    ".G.G.G.G.G.G.",
+    "..T.T.T.T.T..",
+    "......X......"
+  ],
+  "legend": {
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "T": "TOUGH",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

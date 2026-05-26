@@ -1,0 +1,55 @@
+## Build
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+*.apk
+*.aab
+*.dex
+
+## Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+## IDE — IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+## IDE — Eclipse / VS Code
+.classpath
+.project
+.settings/
+.vscode/
+bin/
+
+## Claude Code local state
+.claude/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Logs
+*.log
+hs_err_pid*
+
+## Signing — never commit
+*.jks
+*.keystore
+keystore.properties
+
+## Generated assets
+android/assets/
+
+## Archived raw assets (not packaged)
+_archive/

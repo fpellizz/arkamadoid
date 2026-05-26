@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARKAMADOID - Extreme Glow Edition</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#574050",
+                        "on-secondary-container": "#00686f",
+                        "surface-container-high": "#2a2930",
+                        "on-primary": "#5e0053",
+                        "on-error-container": "#ffdad6",
+                        "tertiary": "#dbc900",
+                        "surface": "#131319",
+                        "on-secondary-fixed": "#002022",
+                        "primary": "#fface8",
+                        "on-secondary": "#00363a",
+                        "outline": "#a5889b",
+                        "primary-container": "#ff24e4",
+                        "surface-tint": "#fface8",
+                        "on-surface": "#e4e1ea",
+                        "error-container": "#93000a",
+                        "inverse-surface": "#e4e1ea",
+                        "secondary-fixed": "#7df4ff",
+                        "on-tertiary-fixed": "#1f1c00",
+                        "on-primary-fixed": "#3a0033",
+                        "primary-fixed": "#ffd7f0",
+                        "on-background": "#e4e1ea",
+                        "surface-container-highest": "#35343b",
+                        "tertiary-fixed": "#fae500",
+                        "primary-fixed-dim": "#fface8",
+                        "secondary-container": "#00eefc",
+                        "on-primary-container": "#520049",
+                        "inverse-on-surface": "#303037",
+                        "on-surface-variant": "#ddbed1",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "inverse-primary": "#ad009b",
+                        "surface-variant": "#35343b",
+                        "surface-dim": "#131319",
+                        "error": "#ffb4ab",
+                        "secondary-fixed-dim": "#00dbe9",
+                        "on-primary-fixed-variant": "#840076",
+                        "surface-container-lowest": "#0e0e14",
+                        "surface-container-low": "#1b1b22",
+                        "on-tertiary": "#363100",
+                        "background": "#131319",
+                        "surface-container": "#1f1f26",
+                        "tertiary-fixed-dim": "#dbc900",
+                        "on-tertiary-fixed-variant": "#4f4800",
+                        "surface-bright": "#393840",
+                        "on-tertiary-container": "#474000",
+                        "tertiary-container": "#bdad00",
+                        "on-error": "#690005"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "gutter": "16px",
+                        "bezel-width": "40px",
+                        "unit": "8px",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Space Mono"],
+                        "display-lg": ["Space Mono"],
+                        "body-md": ["Space Mono"],
+                        "headline-lg-mobile": ["Space Mono"],
+                        "headline-lg": ["Space Mono"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+        
+        .crt-overlay {
+            pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 4px 100%;
+            z-index: 40;
+        }
+
+        .scanline-anim {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(0deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0) 100%);
+            position: absolute;
+            top: -100%;
+            animation: scanline 8s linear infinite;
+            z-index: 40;
+        }
+
+        .grid-background {
+            background-image: linear-gradient(to right, rgba(255, 172, 232, 0.05) 1px, transparent 1px), 
+                              linear-gradient(to bottom, rgba(255, 172, 232, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .neon-glow-pink {
+            box-shadow: 0 0 15px rgba(255, 36, 228, 0.8), 0 0 30px rgba(255, 36, 228, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .neon-glow-cyan {
+            box-shadow: 0 0 15px rgba(0, 238, 252, 0.8), 0 0 30px rgba(0, 238, 252, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .paddle-glow {
+            box-shadow: 0 0 25px rgba(0, 238, 252, 1), 0 0 50px rgba(0, 238, 252, 0.5);
+        }
+
+        .ball-glow {
+            box-shadow: 0 0 20px #fff, 0 0 40px #fface8;
+        }
+
+        body { min-height: 100dvh; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation Overlay -->
+<header class="flex justify-between items-center px-margin-mobile h-16 w-full fixed z-50 bg-surface-container-lowest/80 backdrop-blur-md top-0 border-b border-primary/20">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="videogame_asset">videogame_asset</span>
+<h1 class="font-display-lg text-lg text-primary drop-shadow-[0_0_8px_rgba(255,172,232,0.8)] leading-none tracking-tighter uppercase">ARKAMADOID</h1>
+</div>
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined text-secondary-container cursor-pointer hover:text-primary transition-colors drop-shadow-[0_0_8px_rgba(0,238,252,0.5)]">pause_circle</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">settings</span>
+</div>
+</header>
+<!-- Full Screen Immersive Game Area -->
+<main class="relative flex-grow w-full flex flex-col bg-surface overflow-hidden touch-none" id="game-container">
+<!-- Background Layers -->
+<div class="absolute inset-0 grid-background pointer-events-none"></div>
+<div class="absolute inset-0 crt-overlay"></div>
+<div class="absolute inset-0 scanline-anim"></div>
+<!-- HUD Overlay -->
+<div class="relative z-30 flex justify-between items-start px-6 pt-24 pb-4 w-full">
+<div class="flex flex-col bg-surface-container-low/60 backdrop-blur-sm p-3 border-l-2 border-tertiary-fixed min-w-[100px]">
+<span class="text-[9px] font-bold text-tertiary-fixed uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_#fae500]">DATA_STORE</span>
+<span class="text-2xl font-display-lg text-tertiary-fixed drop-shadow-[0_0_10px_#fae500] tabular-nums">001250</span>
+</div>
+<div class="flex flex-col items-center bg-surface-container-low/60 backdrop-blur-sm p-3 border-b-2 border-primary min-w-[80px]">
+<span class="text-[9px] font-bold text-primary uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_#fface8]">SECTOR</span>
+<span class="text-2xl font-display-lg text-primary drop-shadow-[0_0_10px_#fface8] tabular-nums">01</span>
+</div>
+<div class="flex flex-col items-end bg-surface-container-low/60 backdrop-blur-sm p-3 border-r-2 border-secondary-fixed-dim min-w-[100px]">
+<span class="text-[9px] font-bold text-secondary-fixed-dim uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_#00dbe9]">INTEGRITY</span>
+<div class="flex gap-1 text-secondary-fixed-dim drop-shadow-[0_0_10px_#00dbe9]">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+</div>
+</div>
+<!-- Gameplay Elements -->
+<div class="relative flex-grow w-full px-4 pt-12">
+<!-- Bricks Layout -->
+<div class="grid grid-cols-6 gap-3 max-w-md mx-auto">
+<!-- Row 1: Magenta (Primary) -->
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<!-- Row 2: Cyan (Secondary) -->
+<div class="h-6 bg-secondary-container rounded-sm neon-glow-cyan"></div>
+<div class="h-6 bg-secondary-container/20 rounded-sm border border-secondary-container/30"></div>
+<div class="h-6 bg-secondary-container rounded-sm neon-glow-cyan"></div>
+<div class="h-6 bg-secondary-container rounded-sm neon-glow-cyan"></div>
+<div class="h-6 bg-secondary-container/20 rounded-sm border border-secondary-container/30"></div>
+<div class="h-6 bg-secondary-container rounded-sm neon-glow-cyan"></div>
+<!-- Row 3: Magenta (Primary) -->
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+<div class="h-6 bg-primary-container rounded-sm neon-glow-pink"></div>
+</div>
+<!-- Glowing Ball -->
+<div class="absolute w-6 h-6 bg-white rounded-full ball-glow z-20" id="ball" style="left: 48%; top: 40%;"></div>
+<!-- Neon Paddle -->
+<div class="absolute bottom-28 left-1/2 -translate-x-1/2 w-48 h-6 bg-secondary-container rounded-full paddle-glow flex items-center justify-center z-20" id="paddle">
+<div class="w-[90%] h-1.5 bg-white/60 rounded-full"></div>
+</div>
+</div>
+<!-- Instructional Footer Text -->
+<div class="absolute bottom-24 w-full text-center z-30 pointer-events-none opacity-80">
+<span class="text-[10px] font-label-sm tracking-[0.4em] text-secondary-fixed-dim uppercase drop-shadow-[0_0_5px_rgba(0,219,233,0.8)]">SENSORS ACTIVE: SLIDE TO STEER</span>
+</div>
+</main>
+<!-- Bottom App Navigation -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter h-20 bg-surface-container-lowest/90 border-t border-primary/20 backdrop-blur-xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all cursor-pointer">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-[10px] font-label-sm uppercase mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_12px_rgba(255,172,232,0.8)] scale-110">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+<span class="text-[10px] font-label-sm uppercase mt-1 font-bold">Play</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all cursor-pointer">
+<span class="material-symbols-outlined text-2xl">leaderboard</span>
+<span class="text-[10px] font-label-sm uppercase mt-1">Scores</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary transition-all cursor-pointer">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-label-sm uppercase mt-1">Profile</span>
+</div>
+</nav>
+<script>
+        // Paddle movement script
+        const paddle = document.getElementById('paddle');
+        const container = document.getElementById('game-container');
+        
+        const movePaddle = (clientX) => {
+            const rect = container.getBoundingClientRect();
+            let x = clientX - rect.left;
+            const halfWidth = paddle.offsetWidth / 2;
+            if (x < halfWidth) x = halfWidth;
+            if (x > rect.width - halfWidth) x = rect.width - halfWidth;
+            paddle.style.left = `${x}px`;
+        };
+
+        container.addEventListener('mousemove', (e) => movePaddle(e.clientX));
+        container.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            movePaddle(e.touches[0].clientX);
+        }, { passive: false });
+
+        // Simple ball animation logic for demonstration
+        let ballX = 48;
+        let ballY = 40;
+        let dx = 0.2;
+        let dy = 0.35;
+
+        function updateBall() {
+            const ball = document.getElementById('ball');
+            ballX += dx;
+            ballY += dy;
+
+            if (ballX <= 5 || ballX >= 95) dx *= -1;
+            if (ballY <= 15) dy *= -1;
+            
+            // Paddle collision
+            if (ballY >= 78 && ballY <= 82) {
+                const paddleRect = paddle.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                const ballRect = ball.getBoundingClientRect();
+                const ballCenterX = ballRect.left + ballRect.width / 2;
+                
+                if (ballCenterX >= paddleRect.left && ballCenterX <= paddleRect.right) {
+                    dy = -Math.abs(dy);
+                }
+            }
+
+            if (ballY >= 95) {
+                ballX = 48;
+                ballY = 40;
+            }
+
+            ball.style.left = `${ballX}%`;
+            ball.style.top = `${ballY}%`;
+            requestAnimationFrame(updateBall);
+        }
+        updateBall();
+    </script>
+</body></html>

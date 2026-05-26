@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARKAMADOID - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            5% { opacity: 0.95; }
+            10% { opacity: 0.99; }
+            15% { opacity: 0.94; }
+            20% { opacity: 1; }
+            100% { opacity: 0.98; }
+        }
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .crt-scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.05) 50%, transparent 100%);
+            animation: scanline 8s linear infinite;
+            pointer-events: none;
+            z-index: 101;
+        }
+        .arcade-screen {
+            background: radial-gradient(circle at center, #1f1f26 0%, #0e0e14 100%);
+            animation: flicker 0.15s infinite;
+        }
+        .glow-text-primary {
+            text-shadow: 0 0 8px #fface8, 0 0 15px #fface8;
+        }
+        .glow-text-secondary {
+            text-shadow: 0 0 8px #00dbe9, 0 0 15px #00dbe9;
+        }
+        .neon-border-magenta {
+            box-shadow: 0 0 10px #fface8, inset 0 0 5px #fface8;
+        }
+        .neon-border-cyan {
+            box-shadow: 0 0 10px #00dbe9, inset 0 0 5px #00dbe9;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #00dbe9;
+            cursor: pointer;
+            box-shadow: 0 0 15px #00dbe9;
+            border-radius: 2px;
+        }
+        .cabinet-bezel {
+            border: 40px solid #1a1a1a;
+            border-image: linear-gradient(to bottom, #2a2a2a, #000000) 1;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "primary-fixed-dim": "#fface8",
+                "on-secondary": "#00363a",
+                "inverse-on-surface": "#303037",
+                "primary-fixed": "#ffd7f0",
+                "surface-tint": "#fface8",
+                "on-tertiary-container": "#474000",
+                "outline": "#a5889b",
+                "primary-container": "#ff24e4",
+                "on-tertiary": "#363100",
+                "secondary": "#d3fbff",
+                "on-surface": "#e4e1ea",
+                "secondary-fixed": "#7df4ff",
+                "on-tertiary-fixed": "#1f1c00",
+                "inverse-surface": "#e4e1ea",
+                "primary": "#fface8",
+                "inverse-primary": "#ad009b",
+                "tertiary-container": "#bdad00",
+                "surface-container-high": "#2a2930",
+                "surface-container": "#1f1f26",
+                "surface": "#131319",
+                "tertiary-fixed": "#fae500",
+                "on-secondary-container": "#00686f",
+                "on-secondary-fixed-variant": "#004f54",
+                "on-error-container": "#ffdad6",
+                "background": "#131319",
+                "surface-dim": "#131319",
+                "on-primary-fixed-variant": "#840076",
+                "on-primary-container": "#520049",
+                "secondary-fixed-dim": "#00dbe9",
+                "error-container": "#93000a",
+                "surface-variant": "#35343b",
+                "on-background": "#e4e1ea",
+                "on-primary-fixed": "#3a0033",
+                "tertiary-fixed-dim": "#dbc900",
+                "surface-container-lowest": "#0e0e14",
+                "surface-bright": "#393840",
+                "on-error": "#690005",
+                "on-tertiary-fixed-variant": "#4f4800",
+                "outline-variant": "#574050",
+                "on-surface-variant": "#ddbed1",
+                "secondary-container": "#00eefc",
+                "error": "#ffb4ab",
+                "tertiary": "#dbc900",
+                "surface-container-low": "#1b1b22",
+                "on-secondary-fixed": "#002022",
+                "on-primary": "#5e0053",
+                "surface-container-highest": "#35343b"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "margin-desktop": "32px",
+                "unit": "8px",
+                "bezel-width": "40px",
+                "gutter": "16px",
+                "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                "display-lg": ["Space Mono"],
+                "body-md": ["Space Mono"],
+                "label-sm": ["Space Mono"],
+                "headline-lg-mobile": ["Space Mono"],
+                "headline-lg": ["Space Mono"]
+            },
+            "fontSize": {
+                "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-2px", "fontWeight": "700"}],
+                "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "700"}],
+                "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md text-body-md overflow-hidden min-h-screen flex flex-col">
+<div class="crt-overlay"></div>
+<div class="crt-scanline"></div>
+<header class="bg-gradient-to-b from-surface-container-high to-transparent flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop pt-unit z-50 drop-shadow-[0_4px_12px_rgba(255,172,232,0.3)]">
+<div class="flex items-center gap-2">
+<button class="hover:text-secondary-fixed-dim transition-all group">
+<span class="material-symbols-outlined text-primary glow-text-primary text-[32px]">arrow_back</span>
+</button>
+<h1 class="font-display-lg text-headline-lg-mobile md:text-display-lg text-primary drop-shadow-[0_0_8px_#fface8] tracking-tighter">ARKAMADOID</h1>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-secondary-fixed-dim glow-text-secondary scale-125">settings</span>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center justify-center p-gutter md:p-margin-desktop relative overflow-hidden">
+<div class="max-w-4xl w-full arcade-screen border-2 border-outline-variant p-gutter md:p-margin-desktop rounded-lg shadow-2xl relative">
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAHF_nY51buZXWKnC8B-HINcOAmFwsCvi_ax0TV7rXQ0tUmc4wdwGi5oc-8Pn6sPL-Y_K3oTiZn6SFp9yfwbYe4R9Yg_CTQPJIl3XEDS_OhdhowejpqR5uzj5QtrF5QTVMLWT20agGk5mJ4usyMMktj_Imfc259op6p-Gl5D77eMAaP1ZBOj28xruySZk_iAb-Slw2vGFQwA6rsKAVGJ5PuRT3M1ry7AtVe3TfGiMMVVuPMC3w44uYdHIM5w4m5gKQwBgf7zPa0HhMT');"></div>
+<div class="flex justify-center gap-2 mb-8 border-b-2 border-outline-variant pb-4 overflow-x-auto">
+<button class="px-6 py-2 font-display-lg text-headline-lg-mobile text-primary border-2 border-primary glow-text-primary bg-primary-container/10 transition-all" id="tab-audio" onclick="switchTab('audio')">AUDIO</button>
+<button class="px-6 py-2 font-display-lg text-headline-lg-mobile text-on-surface-variant opacity-60 hover:opacity-100 transition-all border-2 border-transparent" id="tab-input" onclick="switchTab('input')">INPUT</button>
+<button class="px-6 py-2 font-display-lg text-headline-lg-mobile text-on-surface-variant opacity-60 hover:opacity-100 transition-all border-2 border-transparent" id="tab-graphics" onclick="switchTab('graphics')">GRAPHICS</button>
+</div>
+<div class="space-y-12 min-h-[400px]" id="settings-content">
+<!-- Audio Section (Active by default) -->
+<section class="space-y-8 animate-in fade-in duration-300" id="section-audio">
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="font-display-lg text-primary glow-text-primary">MASTER VOLUME</label>
+<span class="text-secondary-fixed-dim glow-text-secondary font-display-lg" id="vol-val">80%</span>
+</div>
+<input class="w-full h-4 bg-surface-container-high appearance-none border-2 border-secondary-fixed-dim neon-border-cyan rounded-none" max="100" min="0" oninput="document.getElementById('vol-val').innerText = this.value + '%'" type="range" value="80"/>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="font-display-lg text-primary glow-text-primary">MUSIC VOLUME</label>
+<span class="text-secondary-fixed-dim glow-text-secondary font-display-lg" id="mus-val">65%</span>
+</div>
+<input class="w-full h-4 bg-surface-container-high appearance-none border-2 border-secondary-fixed-dim neon-border-cyan rounded-none" max="100" min="0" oninput="document.getElementById('mus-val').innerText = this.value + '%'" type="range" value="65"/>
+</div>
+</section>
+<!-- Input Section (Hidden) -->
+<section class="hidden space-y-8 animate-in fade-in duration-300" id="section-input">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-4 border-2 border-outline-variant flex justify-between items-center">
+<span class="text-on-surface">MOVE LEFT</span>
+<kbd class="px-4 py-2 bg-primary/20 border border-primary text-primary glow-text-primary">A / LEFT</kbd>
+</div>
+<div class="p-4 border-2 border-outline-variant flex justify-between items-center">
+<span class="text-on-surface">MOVE RIGHT</span>
+<kbd class="px-4 py-2 bg-primary/20 border border-primary text-primary glow-text-primary">D / RIGHT</kbd>
+</div>
+<div class="p-4 border-2 border-outline-variant flex justify-between items-center">
+<span class="text-on-surface">FIRE / LAUNCH</span>
+<kbd class="px-4 py-2 bg-primary/20 border border-primary text-primary glow-text-primary">SPACE</kbd>
+</div>
+<div class="p-4 border-2 border-outline-variant flex justify-between items-center">
+<span class="text-on-surface">PAUSE</span>
+<kbd class="px-4 py-2 bg-primary/20 border border-primary text-primary glow-text-primary">ESC</kbd>
+</div>
+</div>
+<button class="w-full py-4 border-2 border-secondary-fixed-dim text-secondary-fixed-dim font-display-lg glow-text-secondary hover:bg-secondary-fixed-dim/20 transition-all active:scale-95">RECALIBRATE CONTROLLER</button>
+</section>
+<!-- Graphics Section (Hidden) -->
+<section class="hidden space-y-8 animate-in fade-in duration-300" id="section-graphics">
+<div class="flex justify-between items-center p-4 border-2 border-outline-variant">
+<label class="font-display-lg text-primary glow-text-primary">CRT SCANLINES</label>
+<button class="w-16 h-8 bg-surface-container-high border-2 border-secondary-fixed-dim relative transition-all" onclick="toggleSwitch(this)">
+<div class="absolute top-1 left-1 w-6 h-4 bg-secondary-fixed-dim shadow-[0_0_10px_#00dbe9] transform translate-x-8 transition-transform"></div>
+</button>
+</div>
+<div class="flex justify-between items-center p-4 border-2 border-outline-variant">
+<label class="font-display-lg text-primary glow-text-primary">SCREEN SHAKE</label>
+<button class="w-16 h-8 bg-surface-container-high border-2 border-secondary-fixed-dim relative transition-all" onclick="toggleSwitch(this)">
+<div class="absolute top-1 left-1 w-6 h-4 bg-secondary-fixed-dim shadow-[0_0_10px_#00dbe9] transform translate-x-8 transition-transform"></div>
+</button>
+</div>
+<div class="flex justify-between items-center p-4 border-2 border-outline-variant">
+<label class="font-display-lg text-primary glow-text-primary">CHROMATIC ABERRATION</label>
+<button class="w-16 h-8 bg-surface-container-high border-2 border-outline-variant relative transition-all" onclick="toggleSwitch(this)">
+<div class="absolute top-1 left-1 w-6 h-4 bg-on-surface-variant/40 transform translate-x-0 transition-transform"></div>
+</button>
+</div>
+</section>
+</div>
+</div>
+<div class="mt-margin-desktop grid grid-cols-2 md:grid-cols-4 gap-gutter w-full max-w-4xl">
+<div class="border-2 border-primary-fixed-dim p-4 flex flex-col items-center justify-center bg-surface-container-lowest neon-border-magenta">
+<span class="text-label-sm text-primary uppercase">Hi-Score</span>
+<span class="font-display-lg text-primary glow-text-primary">999,999</span>
+</div>
+<div class="border-2 border-secondary-fixed-dim p-4 flex flex-col items-center justify-center bg-surface-container-lowest neon-border-cyan">
+<span class="text-label-sm text-secondary-fixed-dim uppercase">Status</span>
+<span class="font-display-lg text-secondary-fixed-dim glow-text-secondary">READY</span>
+</div>
+<div class="hidden md:flex border-2 border-primary-fixed-dim p-4 flex-col items-center justify-center bg-surface-container-lowest neon-border-magenta">
+<span class="text-label-sm text-primary uppercase">Player</span>
+<span class="font-display-lg text-primary glow-text-primary">ARC_01</span>
+</div>
+<div class="hidden md:flex border-2 border-secondary-fixed-dim p-4 flex-col items-center justify-center bg-surface-container-lowest neon-border-cyan">
+<span class="text-label-sm text-secondary-fixed-dim uppercase">Tokens</span>
+<span class="font-display-lg text-secondary-fixed-dim glow-text-secondary">∞</span>
+</div>
+</div>
+</main>
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter pb-unit bg-surface-container-low shadow-[0_-4px_20px_rgba(0,219,233,0.2)] md:hidden">
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 p-unit">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 p-unit">
+<span class="material-symbols-outlined">leaderboard</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full p-unit drop-shadow-[0_0_12px_#00eefc]">
+<span class="material-symbols-outlined">settings_input_component</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 p-unit">
+<span class="material-symbols-outlined">power_settings_new</span>
+</button>
+</footer>
+<script>
+        function switchTab(tabId) {
+            // Sections
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('section-' + tabId).classList.remove('hidden');
+
+            // Tabs Styling
+            const tabs = ['audio', 'input', 'graphics'];
+            tabs.forEach(t => {
+                const el = document.getElementById('tab-' + t);
+                if (t === tabId) {
+                    el.classList.remove('text-on-surface-variant', 'opacity-60', 'border-transparent');
+                    el.classList.add('text-primary', 'border-primary', 'glow-text-primary', 'bg-primary-container/10');
+                } else {
+                    el.classList.add('text-on-surface-variant', 'opacity-60', 'border-transparent');
+                    el.classList.remove('text-primary', 'border-primary', 'glow-text-primary', 'bg-primary-container/10');
+                }
+            });
+        }
+
+        function toggleSwitch(btn) {
+            const dot = btn.querySelector('div');
+            const isActive = dot.classList.contains('translate-x-8');
+            
+            if (isActive) {
+                dot.classList.remove('translate-x-8', 'bg-secondary-fixed-dim', 'shadow-[0_0_10px_#00dbe9]');
+                dot.classList.add('translate-x-0', 'bg-on-surface-variant/40');
+                btn.classList.remove('border-secondary-fixed-dim');
+                btn.classList.add('border-outline-variant');
+            } else {
+                dot.classList.add('translate-x-8', 'bg-secondary-fixed-dim', 'shadow-[0_0_10px_#00dbe9]');
+                dot.classList.remove('translate-x-0', 'bg-on-surface-variant/40');
+                btn.classList.add('border-secondary-fixed-dim');
+                btn.classList.remove('border-outline-variant');
+            }
+        }
+    </script>
+</body></html>

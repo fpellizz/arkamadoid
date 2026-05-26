@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARKAMADOID - Hall of Fame</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#fface8",
+                    "on-secondary": "#00363a",
+                    "inverse-on-surface": "#303037",
+                    "primary-fixed": "#ffd7f0",
+                    "surface-tint": "#fface8",
+                    "on-tertiary-container": "#474000",
+                    "outline": "#a5889b",
+                    "primary-container": "#ff24e4",
+                    "on-tertiary": "#363100",
+                    "secondary": "#d3fbff",
+                    "on-surface": "#e4e1ea",
+                    "secondary-fixed": "#7df4ff",
+                    "on-tertiary-fixed": "#1f1c00",
+                    "inverse-surface": "#e4e1ea",
+                    "primary": "#fface8",
+                    "inverse-primary": "#ad009b",
+                    "tertiary-container": "#bdad00",
+                    "surface-container-high": "#2a2930",
+                    "surface-container": "#1f1f26",
+                    "surface": "#131319",
+                    "tertiary-fixed": "#fae500",
+                    "on-secondary-container": "#00686f",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "on-error-container": "#ffdad6",
+                    "background": "#131319",
+                    "surface-dim": "#131319",
+                    "on-primary-fixed-variant": "#840076",
+                    "on-primary-container": "#520049",
+                    "secondary-fixed-dim": "#00dbe9",
+                    "error-container": "#93000a",
+                    "surface-variant": "#35343b",
+                    "on-background": "#e4e1ea",
+                    "on-primary-fixed": "#3a0033",
+                    "tertiary-fixed-dim": "#dbc900",
+                    "surface-container-lowest": "#0e0e14",
+                    "surface-bright": "#393840",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed-variant": "#4f4800",
+                    "outline-variant": "#574050",
+                    "on-surface-variant": "#ddbed1",
+                    "secondary-container": "#00eefc",
+                    "error": "#ffb4ab",
+                    "tertiary": "#dbc900",
+                    "surface-container-low": "#1b1b22",
+                    "on-secondary-fixed": "#002022",
+                    "on-primary": "#5e0053",
+                    "surface-container-highest": "#35343b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-desktop": "32px",
+                    "unit": "8px",
+                    "bezel-width": "40px",
+                    "gutter": "16px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Space Mono"],
+                    "body-md": ["Space Mono"],
+                    "label-sm": ["Space Mono"],
+                    "headline-lg-mobile": ["Space Mono"],
+                    "headline-lg": ["Space Mono"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-2px", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+        } 100% {
+        transform: translateY(100%);
+        }
+    }
+@keyframes flicker {
+    0% {
+        opacity: 0.97;
+        } 5% {
+        opacity: 0.95;
+        } 10% {
+        opacity: 0.9;
+        } 15% {
+        opacity: 0.95;
+        } 30% {
+        opacity: 0.98;
+        } 50% {
+        opacity: 0.96;
+        } 80% {
+        opacity: 0.99;
+        } 100% {
+        opacity: 0.97;
+        }
+    }
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+        } 50% {
+        opacity: 0;
+        }
+    }
+.crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none;
+    z-index: 100
+    }
+.scanline-effect {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: scanline 8s linear infinite;
+    z-index: 101
+    }
+.cabinet-grain {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuCCjlbFuAA5RnrEPEEVYBri1pVTcHKigQeE42OKIgvbTuIH7eeFTrlVFVdeGNUaoPjjK0VrFcwPjYJ0rcs1h8nMiiOJhPve8Wbx7vR6Z4xWUeGbcrlc1HlToLSbzaqqdOq1NhJgkp7X-XuoFCz2FibR4JbJlQAZNl0gPJi3E4fh1VLFsz4wNopis0kmi2M2LFkhEOtlzX1JRGt7MzRKbjt6xrzDslHPz69JluGg_JWE0NDuJ2XshX7cWWwIyMmt8RpcegbinWZH-rOM)
+    }
+.neon-text-cyan {
+    text-shadow: 0 0 5px #00dbe9, 0 0 10px #00dbe9, 0 0 20px #00dbe9
+    }
+.neon-text-magenta {
+    text-shadow: 0 0 5px #fface8, 0 0 10px #fface8, 0 0 20px #fface8
+    }
+.arcade-grid {
+    background-image: linear-gradient(to right, rgba(0, 219, 233, 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 219, 233, 0.1) 1px, transparent 1px);
+    background-size: 40px 40px;
+    transform: perspective(500px) rotatex(60deg);
+    position: absolute;
+    bottom: -200px;
+    left: -50%;
+    width: 200%;
+    height: 800px;
+    z-index: 0
+    }
+.bezel-frame {
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 172, 232, 0.2)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface overflow-hidden selection:bg-primary selection:text-surface">
+<!-- Arcade Cabinet Bezel (Desktop Only) -->
+<div class="hidden lg:block fixed inset-0 z-0 pointer-events-none cabinet-grain bg-surface-container-highest border-[40px] border-surface-container-highest bezel-frame">
+<div class="absolute top-4 left-4 font-display-lg text-primary-fixed-dim opacity-30">ARKAMADOID CAB-1984</div>
+<div class="absolute bottom-4 right-4 font-display-lg text-secondary-fixed-dim opacity-30">INSERT COIN TO PLAY</div>
+</div>
+<!-- Main Arcade Screen -->
+<main class="relative z-10 w-full h-screen max-w-[1200px] mx-auto bg-surface-container-lowest flex flex-col overflow-hidden lg:my-margin-desktop lg:h-[calc(100vh-64px)] lg:rounded-xl shadow-2xl border-x-8 border-surface-variant animate-[flicker_0.1s_infinite_alternate]">
+<!-- CRT Effects -->
+<div class="crt-overlay"></div>
+<div class="scanline-effect"></div>
+<div class="arcade-grid opacity-20"></div>
+<!-- Top App Bar -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-lowest text-primary dark:text-primary font-headline-lg-mobile text-headline-lg-mobile docked full-width top-0 bg-gradient-to-b from-surface-container-high to-transparent drop-shadow-[0_4px_12px_rgba(255,172,232,0.3)] flex justify-between items-center w-full px-margin-mobile pt-unit z-50">
+<div class="flex items-center gap-2 scale-105 transition-transform duration-150 ease-out">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">videogame_asset</span>
+<span class="font-display-lg text-display-lg text-primary drop-shadow-[0_0_8px_#fface8] tracking-tighter">ARKAMADOID</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<div class="font-label-sm text-secondary-fixed-dim uppercase tracking-widest">High Score</div>
+<div class="font-headline-lg text-secondary-fixed-dim drop-shadow-[0_0_10px_#00eefc]">99,999,999</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary-fixed hover:drop-shadow-[0_0_15px_#00dbe9] scale-105 transition-transform duration-150 ease-out">settings</button>
+</div>
+</header>
+<!-- Content Area: Hall of Fame -->
+<div class="flex-grow flex flex-col items-center justify-center relative px-gutter pt-8">
+<!-- Hall of Fame Title -->
+<div class="text-center mb-8 relative z-20">
+<h1 class="font-display-lg text-secondary-fixed-dim neon-text-cyan uppercase italic tracking-[0.2em] animate-pulse">
+                    HALL OF FAME
+                </h1>
+<div class="h-1 w-full bg-secondary-fixed-dim drop-shadow-[0_0_10px_#00eefc] mt-2"></div>
+</div>
+<!-- Leaderboard Table -->
+<div class="w-full max-w-2xl bg-surface-container/60 backdrop-blur-sm p-margin-mobile rounded-lg border border-outline-variant/30 z-20 overflow-hidden relative">
+<div class="grid grid-cols-12 font-label-sm text-on-surface-variant uppercase border-b border-outline-variant pb-2 mb-4 tracking-tighter">
+<div class="col-span-2">RANK</div>
+<div class="col-span-6">NAME</div>
+<div class="col-span-4 text-right">SCORE</div>
+</div>
+<div class="space-y-3 font-display-lg text-headline-lg-mobile tracking-tighter">
+<!-- High Score Entries -->
+<div class="grid grid-cols-12 text-secondary-fixed-dim/80 hover:text-secondary-fixed transition-colors">
+<div class="col-span-2">01</div>
+<div class="col-span-6">CYBER_PNK</div>
+<div class="col-span-4 text-right">01,245,900</div>
+</div>
+<div class="grid grid-cols-12 text-primary-fixed-dim/80">
+<div class="col-span-2">02</div>
+<div class="col-span-6">NEON_VOID</div>
+<div class="col-span-4 text-right">00,988,340</div>
+</div>
+<div class="grid grid-cols-12 text-secondary-fixed-dim/80">
+<div class="col-span-2">03</div>
+<div class="col-span-6">RETRO_KID</div>
+<div class="col-span-4 text-right">00,755,200</div>
+</div>
+<!-- Highlighted Current Session Entry -->
+<div class="grid grid-cols-12 bg-secondary-container/20 border-y border-secondary-container text-secondary-container neon-text-cyan py-1 -mx-margin-mobile px-margin-mobile scale-105 shadow-[0_0_30px_rgba(0,238,252,0.2)]">
+<div class="col-span-2">04</div>
+<div class="col-span-6">YOU</div>
+<div class="col-span-4 text-right">00,642,100</div>
+</div>
+<div class="grid grid-cols-12 text-on-surface-variant opacity-60">
+<div class="col-span-2">05</div>
+<div class="col-span-6">VAPOR_WAV</div>
+<div class="col-span-4 text-right">00,533,000</div>
+</div>
+<div class="grid grid-cols-12 text-on-surface-variant opacity-60">
+<div class="col-span-2">06</div>
+<div class="col-span-6">SYNTH_POP</div>
+<div class="col-span-4 text-right">00,422,110</div>
+</div>
+<div class="grid grid-cols-12 text-on-surface-variant opacity-50">
+<div class="col-span-2">07</div>
+<div class="col-span-6">TRON_USER</div>
+<div class="col-span-4 text-right">00,311,900</div>
+</div>
+<div class="grid grid-cols-12 text-on-surface-variant opacity-40">
+<div class="col-span-2">08</div>
+<div class="col-span-8">STITCH</div>
+<div class="col-span-4 text-right">00,205,000</div>
+</div>
+</div>
+<!-- Glow background for the highlighted entry -->
+<div class="absolute top-[164px] left-0 w-full h-[48px] bg-secondary-container/10 pointer-events-none blur-xl"></div>
+</div>
+<!-- Footer Prompt -->
+<div class="mt-12 text-center z-20">
+<p class="font-display-lg text-primary neon-text-magenta tracking-widest uppercase mb-4">
+                    ENTER YOUR INITIALS
+                </p>
+<div class="flex justify-center items-center gap-4">
+<div class="w-16 h-20 bg-surface-container-high border-b-4 border-secondary-container flex items-center justify-center font-display-lg text-[48px] text-secondary-fixed-dim">S</div>
+<div class="w-16 h-20 bg-surface-container-high border-b-4 border-secondary-container flex items-center justify-center font-display-lg text-[48px] text-secondary-fixed-dim">T</div>
+<div class="w-16 h-20 bg-surface-container-high border-b-4 border-secondary-container flex items-center justify-center font-display-lg text-[48px] text-secondary-fixed-dim relative">
+<div class="animate-[blink_1s_infinite] w-8 h-1 bg-secondary-container absolute bottom-2"></div>
+</div>
+</div>
+</div>
+<!-- Contextual Graphics -->
+<div class="absolute bottom-4 left-4 z-20 opacity-40">
+<img class="w-16 h-16 rounded-full border-2 border-primary" data-alt="A pixel-art style character head of a futuristic pilot wearing a neon visor and helmet, styled in vaporwave magenta and cyan colors with a heavy scanline effect and glow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAK3JYf6vAO284oOnEWt7w20pjUJylsMHFeflfuFqsbX1Xd5DQwUhF2ek8galJNNY0IQt4xD92EkYiPEPNx2fcuKt1UuEbSZvermtRgNALBpIfUsMkP6GxRxTuzKA6aYcT6Z3qYBvZvCkC1ccv3ZwkTrDxNcIuD40vjLA9HxZnR2JGpjaLLEiZIOcJNoDkciamDTEurk2HT7rCUUD9kPA9DlHdniSw3er1m1Tr78jyWxfjnfVlMALRoqZCvzwKOzqLUwDS-n0cprGuS"/>
+</div>
+<div class="absolute bottom-4 right-4 z-20 opacity-40">
+<img class="w-16 h-16 rounded-full border-2 border-secondary-fixed-dim" data-alt="A glowing blue pixelated coin icon with an arcade aesthetics, floating in space with digital particles and trailing neon lights, matching a retro arcade high score screen." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZtOnEtWVn3dr8yzxiRYen92joAvSXoJM8tdqWktHYKkBsOcvPMmT9diDOfz2xNvojkXJmunrYKep0Olm22C79RKkl-a5PtuDJZO6QqqYxYgwXHDQ8PT1TsHuBwQEP3vfFjEwIkogO2__Btt98JnVWdZUnY9lfsHuQ0YPE16iNVwOknxLLCjj9hwooeJVeyAqyrUCmpkcf7VXUsqkB2fLkhheKjsihzwj-gpuXnH5EyoLIIxWdZDXAgGfhoELoLrUbqAp56riDLm3z"/>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="bg-surface-container-low dark:bg-surface-container-low text-secondary-fixed-dim dark:text-secondary-fixed-dim font-label-sm text-label-sm uppercase docked full-width bottom-0 rounded-t-full border-t border-outline-variant shadow-[0_-4px_20px_rgba(0,219,233,0.2)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter pb-unit">
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:opacity-100 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-[32px]">play_arrow</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full p-unit drop-shadow-[0_0_12px_#00eefc] scale-105 transition-all">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:opacity-100 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-[32px]">settings_input_component</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:opacity-100 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-[32px]">power_settings_new</span>
+</button>
+</nav>
+</main>
+<script>
+        // Atmospheric effects toggle or interactivity
+        document.addEventListener('keydown', (e) => {
+            const keys = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+            if(keys.includes(e.key.toUpperCase())) {
+                // Micro-interaction: visual feedback on key press
+                const containers = document.querySelectorAll('.w-16.h-20');
+                const lastEmpty = Array.from(containers).find(c => !c.textContent.trim());
+                if (lastEmpty) {
+                    lastEmpty.textContent = e.key.toUpperCase();
+                    lastEmpty.classList.add('scale-110');
+                    setTimeout(() => lastEmpty.classList.remove('scale-110'), 100);
+                }
+            }
+        });
+    </script>
+</body></html>

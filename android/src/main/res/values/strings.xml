@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Arkamadoid</string>
+    <!-- Replace with your real Google Play Console app id -->
+    <string name="gpgs_app_id" translatable="false">000000000000</string>
+</resources>

@@ -1,0 +1,5 @@
+-keep class com.badlogic.gdx.** { *; }
+-keep class com.badlogic.gdx.backends.android.** { *; }
+-dontwarn com.badlogic.gdx.**
+-keepclassmembers class com.arkamadoid.** { *; }
+-keep class com.google.android.gms.games.** { *; }

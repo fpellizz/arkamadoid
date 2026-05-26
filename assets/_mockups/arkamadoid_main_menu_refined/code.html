@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARKAMADOID - Main Menu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#fface8",
+                    "on-secondary": "#00363a",
+                    "inverse-on-surface": "#303037",
+                    "primary-fixed": "#ffd7f0",
+                    "surface-tint": "#fface8",
+                    "on-tertiary-container": "#474000",
+                    "outline": "#a5889b",
+                    "primary-container": "#ff24e4",
+                    "on-tertiary": "#363100",
+                    "secondary": "#d3fbff",
+                    "on-surface": "#e4e1ea",
+                    "secondary-fixed": "#7df4ff",
+                    "on-tertiary-fixed": "#1f1c00",
+                    "inverse-surface": "#e4e1ea",
+                    "primary": "#fface8",
+                    "inverse-primary": "#ad009b",
+                    "tertiary-container": "#bdad00",
+                    "surface-container-high": "#2a2930",
+                    "surface-container": "#1f1f26",
+                    "surface": "#131319",
+                    "tertiary-fixed": "#fae500",
+                    "on-secondary-container": "#00686f",
+                    "on-secondary-fixed-variant": "#004f54",
+                    "on-error-container": "#ffdad6",
+                    "background": "#131319",
+                    "surface-dim": "#131319",
+                    "on-primary-fixed-variant": "#840076",
+                    "on-primary-container": "#520049",
+                    "secondary-fixed-dim": "#00dbe9",
+                    "error-container": "#93000a",
+                    "surface-variant": "#35343b",
+                    "on-background": "#e4e1ea",
+                    "on-primary-fixed": "#3a0033",
+                    "tertiary-fixed-dim": "#dbc900",
+                    "surface-container-lowest": "#0e0e14",
+                    "surface-bright": "#393840",
+                    "on-error": "#690005",
+                    "on-tertiary-fixed-variant": "#4f4800",
+                    "outline-variant": "#574050",
+                    "on-surface-variant": "#ddbed1",
+                    "secondary-container": "#00eefc",
+                    "error": "#ffb4ab",
+                    "tertiary": "#dbc900",
+                    "surface-container-low": "#1b1b22",
+                    "on-secondary-fixed": "#002022",
+                    "on-primary": "#5e0053",
+                    "surface-container-highest": "#35343b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-desktop": "32px",
+                    "unit": "8px",
+                    "bezel-width": "40px",
+                    "gutter": "16px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Space Mono"],
+                    "body-md": ["Space Mono"],
+                    "label-sm": ["Space Mono"],
+                    "headline-lg-mobile": ["Space Mono"],
+                    "headline-lg": ["Space Mono"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-2px", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0e0e14;
+            color: #e4e1ea;
+            font-family: 'Space Mono', monospace;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .crt-overlay::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 100;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            opacity: 0.3;
+            animation: flicker 0.15s infinite;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.27; }
+            50% { opacity: 0.31; }
+            100% { opacity: 0.29; }
+        }
+
+        .arcade-grid {
+            background-image: 
+                linear-gradient(to right, rgba(255, 172, 232, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 172, 232, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            transform: rotateX(60deg) translateY(-200px);
+            position: absolute;
+            top: 0;
+            left: -50%;
+            right: -50%;
+            bottom: -50%;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .bezel-frame {
+            border: 40px solid #1f1f26;
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.9);
+            position: relative;
+        }
+
+        .logo-glow {
+            text-shadow: 0 0 10px #fface8, 0 0 20px #ff24e4, 0 0 30px #ff24e4;
+            letter-spacing: -4px;
+        }
+
+        .menu-button {
+            position: relative;
+            background: #1b1b22;
+            border: 2px solid transparent;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+        }
+
+        .menu-button:hover {
+            background: #2a2930;
+            border-color: #00dbe9;
+            box-shadow: 0 0 15px rgba(0, 219, 233, 0.4), inset 0 0 10px rgba(255, 36, 228, 0.2);
+            transform: scale(1.05);
+        }
+
+        .active-selection {
+            border-color: #00eefc !important;
+            box-shadow: 0 0 25px #00eefc, inset 0 0 15px #ff24e4 !important;
+            animation: pulse-active 1.5s infinite;
+        }
+
+        @keyframes pulse-active {
+            0%, 100% { transform: scale(1.05); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.85; }
+        }
+
+        .scanline-anim {
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.1) 51%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .vignette {
+            background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="crt-overlay">
+<div class="h-screen w-full flex flex-col items-center justify-center p-bezel-width bezel-frame overflow-hidden">
+<div class="vignette z-10"></div>
+<div class="arcade-grid"></div>
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile pt-unit bg-gradient-to-b from-surface-container-high to-transparent drop-shadow-[0_4px_12px_rgba(255,172,232,0.3)]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary scale-105 transition-transform duration-150 ease-out" data-icon="videogame_asset">videogame_asset</span>
+<h1 class="font-display-lg text-primary drop-shadow-[0_0_8px_#fface8] tracking-tighter text-headline-lg">ARKAMADOID</h1>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary-fixed hover:drop-shadow-[0_0_15px_#00dbe9]" data-icon="settings">settings</button>
+</header>
+<main class="relative z-20 flex flex-col items-center max-w-2xl w-full gap-8">
+<div class="flex flex-col items-center mb-12">
+<div class="text-primary font-display-lg logo-glow animate-pulse px-8 border-4 border-primary-container bg-surface-container-lowest/80 rounded-lg text-headline-lg py-2">
+                    ARKAMADOID
+                </div>
+<div class="text-secondary-fixed-dim font-label-sm text-label-sm mt-4 bg-surface-container-low px-4 py-1 rounded-full drop-shadow-[0_0_5px_#00dbe9]">
+                    INSERT COIN TO CONTINUE
+                </div>
+</div>
+<nav class="flex flex-col gap-4 w-full max-w-md px-margin-mobile mx-auto">
+<button class="menu-button active-selection font-headline-lg flex items-center justify-center gap-4 text-on-surface py-3 text-body-md border-2">
+<span class="material-symbols-outlined" data-icon="play_arrow">play_arrow</span>
+                    START GAME
+                </button>
+<button class="menu-button font-headline-lg flex items-center justify-center gap-4 text-on-surface opacity-80 py-3 text-body-md border-2">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+                    GAME MODES
+                </button>
+<button class="menu-button font-headline-lg flex items-center justify-center gap-4 text-on-surface opacity-80 py-3 text-body-md border-2">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+                    HIGH SCORES
+                </button>
+<button class="menu-button font-headline-lg flex items-center justify-center gap-4 text-on-surface opacity-80 py-3 text-body-md border-2">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+                    SETTINGS
+                </button>
+<button class="menu-button font-headline-lg flex items-center justify-center gap-4 text-on-surface opacity-80 py-3 text-body-md border-2">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+                    EXIT
+                </button>
+</nav>
+<div class="mt-8 flex gap-8">
+<div class="bg-surface-container-low border border-outline-variant p-4 rounded-lg flex flex-col items-center min-w-[120px]">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-1">1UP</span>
+<span class="font-headline-lg text-primary drop-shadow-[0_0_10px_#fface8] text-headline-lg-mobile">000,000</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant p-4 rounded-lg flex flex-col items-center min-w-[120px]">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-1">HIGH SCORE</span>
+<span class="font-headline-lg text-secondary-fixed-dim drop-shadow-[0_0_10px_#00dbe9] text-headline-lg-mobile">999,999</span>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter pb-unit bg-surface-container-low border-t border-outline-variant shadow-[0_-4px_20px_rgba(0,219,233,0.2)] md:hidden">
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full p-unit drop-shadow-[0_0_12px_#00eefc]">
+<span class="material-symbols-outlined" data-icon="play_arrow">play_arrow</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:opacity-100 hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:opacity-100 hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 hover:opacity-100 hover:text-primary transition-all">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+</button>
+</nav>
+<div class="hidden lg:block absolute right-margin-desktop top-1/2 -translate-y-1/2 w-64">
+<div class="bg-surface-container-high border border-primary p-6 rounded-lg rotate-3 shadow-[10px_10px_0px_#fface8]">
+<h3 class="font-headline-lg text-headline-lg-mobile text-primary mb-4 border-b border-primary pb-2">CHALLENGES</h3>
+<ul class="flex flex-col gap-3 font-label-sm text-label-sm text-on-surface-variant">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary" data-icon="star">star</span>
+                        BREAK 100 BRICKS
+                    </li>
+<li class="flex items-center gap-2 opacity-50">
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+                        NO DEATH STREAK
+                    </li>
+<li class="flex items-center gap-2 opacity-50">
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+                        SPEED RUN L5
+                    </li>
+</ul>
+</div>
+</div>
+<div class="hidden lg:block absolute left-margin-desktop bottom-margin-desktop w-72">
+<div class="relative group">
+<img class="rounded-lg border-4 border-outline-variant opacity-70 group-hover:opacity-100 transition-opacity" data-alt="A vintage 1980s arcade cabinet glowing in a dark room with neon pink and cyan lights. The screen shows a retro block-breaking game with vibrant pixel art. The environment is hazy with synthwave aesthetics and electronic components visible in the background. High-energy colors and deep contrast evoke a nostalgic gaming atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADKmrkyY14iiUYr1xJoUS3YLi5JrbIbECMEG8ET7crptjrLjpvoXx1hhjG7CzrQt1VyDTYWD-0ZQPHoF8othX5ux6hfRzRWHsWkK0f-6ii8djyYlCOa55XVyPqaDqwAzNWVdFe-6fE41QuvkDaAEFVBc6rko5_bKp3xKB9oU9KQ5Bc6TBTN8GXyA-xHffNHs1Te3AlZjIZ7ZsN2MSiljID1iAZHiHLnYxUPjYxX1pO5M0cfMmK0ZglFnbeTnK0A1sMI9jVd4ZaYkGM"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+<div class="absolute bottom-4 left-4 font-body-md text-body-md text-primary-fixed italic">
+                    "THE CLASSIC REDEFINED"
+                </div>
+</div>
+</div>
+</div>
+<script>
+        document.querySelectorAll('.menu-button').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                document.querySelectorAll('.menu-button').forEach(b => b.classList.remove('active-selection'));
+                btn.classList.add('active-selection');
+            });
+        });
+
+        const grid = document.querySelector('.arcade-grid');
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+            grid.style.transform = `rotateX(${60 + y}deg) rotateY(${x}deg) translateY(-200px)`;
+        });
+    </script>
+</body></html>

@@ -1,0 +1,23 @@
+{
+  "_comment": "Mappa scena_logica → file. Cambia i valori per sostituire la colonna sonora di uno screen senza ricompilare. I file vivono in assets/audio/music/.",
+  "tracks": {
+    "MENU":             "Pixel Spiral.ogg",
+    "ATTRACT":          "Pixel Spiral.ogg",
+    "GAMEPLAY_EARLY":   "Neon Tetris Run.ogg",
+    "GAMEPLAY_MID":     "Block by Block.ogg",
+    "GAMEPLAY_LATE":    "Blockfall Signal.ogg",
+    "BOSS":             "Blockfall Anthem.ogg",
+    "STAGE_CLEAR":      "Block Drop Shuffle.ogg",
+    "GAME_OVER":        "Neon Cube fall.ogg"
+  },
+  "loop": {
+    "MENU": true,
+    "ATTRACT": true,
+    "GAMEPLAY_EARLY": true,
+    "GAMEPLAY_MID": true,
+    "GAMEPLAY_LATE": true,
+    "BOSS": true,
+    "STAGE_CLEAR": false,
+    "GAME_OVER": false
+  }
+}

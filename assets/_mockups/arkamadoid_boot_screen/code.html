@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ARKAMADOID - Booting System</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#fface8",
+                        "on-secondary": "#00363a",
+                        "inverse-on-surface": "#303037",
+                        "primary-fixed": "#ffd7f0",
+                        "surface-tint": "#fface8",
+                        "on-tertiary-container": "#474000",
+                        "outline": "#a5889b",
+                        "primary-container": "#ff24e4",
+                        "on-tertiary": "#363100",
+                        "secondary": "#d3fbff",
+                        "on-surface": "#e4e1ea",
+                        "secondary-fixed": "#7df4ff",
+                        "on-tertiary-fixed": "#1f1c00",
+                        "inverse-surface": "#e4e1ea",
+                        "primary": "#fface8",
+                        "inverse-primary": "#ad009b",
+                        "tertiary-container": "#bdad00",
+                        "surface-container-high": "#2a2930",
+                        "surface-container": "#1f1f26",
+                        "surface": "#131319",
+                        "tertiary-fixed": "#fae500",
+                        "on-secondary-container": "#00686f",
+                        "on-secondary-fixed-variant": "#004f54",
+                        "on-error-container": "#ffdad6",
+                        "background": "#131319",
+                        "surface-dim": "#131319",
+                        "on-primary-fixed-variant": "#840076",
+                        "on-primary-container": "#520049",
+                        "secondary-fixed-dim": "#00dbe9",
+                        "error-container": "#93000a",
+                        "surface-variant": "#35343b",
+                        "on-background": "#e4e1ea",
+                        "on-primary-fixed": "#3a0033",
+                        "tertiary-fixed-dim": "#dbc900",
+                        "surface-container-lowest": "#0e0e14",
+                        "surface-bright": "#393840",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#4f4800",
+                        "outline-variant": "#574050",
+                        "on-surface-variant": "#ddbed1",
+                        "secondary-container": "#00eefc",
+                        "error": "#ffb4ab",
+                        "tertiary": "#dbc900",
+                        "surface-container-low": "#1b1b22",
+                        "on-secondary-fixed": "#002022",
+                        "on-primary": "#5e0053",
+                        "surface-container-highest": "#35343b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "unit": "8px",
+                        "bezel-width": "40px",
+                        "gutter": "16px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Space Mono"],
+                        "body-md": ["Space Mono"],
+                        "label-sm": ["Space Mono"],
+                        "headline-lg-mobile": ["Space Mono"],
+                        "headline-lg": ["Space Mono"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-2px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-sm": ["12px", {"lineHeight": "1", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes flicker {
+            0% { opacity: 0.97; }
+            5% { opacity: 0.95; }
+            10% { opacity: 0.9; }
+            15% { opacity: 0.98; }
+            20% { opacity: 0.95; }
+            100% { opacity: 1; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        @keyframes chromatic {
+            0% { text-shadow: 2px 0 0 rgba(255,0,0,0.5), -2px 0 0 rgba(0,255,255,0.5); }
+            50% { text-shadow: -1px 0 0 rgba(255,0,0,0.5), 1px 0 0 rgba(0,255,255,0.5); }
+            100% { text-shadow: 2px 0 0 rgba(255,0,0,0.5), -2px 0 0 rgba(0,255,255,0.5); }
+        }
+
+        .crt-overlay::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 100;
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .scanline-effect {
+            width: 100%;
+            height: 100px;
+            z-index: 101;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.05) 10%, rgba(0, 0, 0, 0.1) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 8s linear infinite;
+        }
+
+        .bezel-frame {
+            border: 24px solid #1a1a1a;
+            border-image: linear-gradient(to right, #0f0f0f, #2d2d2d, #0f0f0f) 1;
+            box-shadow: inset 0 0 100px rgba(0,0,0,1);
+        }
+
+        .lcd-display {
+            background: #0a0a0c;
+            border: 2px solid #333;
+            box-shadow: inset 0 0 20px #000;
+        }
+
+        .cursor-blink {
+            animation: blink 1s step-end infinite;
+        }
+
+        .glow-text-cyan {
+            text-shadow: 0 0 8px rgba(0, 219, 233, 0.8), 0 0 15px rgba(0, 219, 233, 0.4);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md text-body-md overflow-hidden crt-overlay">
+<div class="fixed inset-0 bezel-frame z-0 pointer-events-none md:block hidden"></div>
+<div class="scanline-effect"></div>
+<main class="relative h-screen w-full flex flex-col items-center justify-center p-gutter z-10 selection:bg-primary-container selection:text-white">
+<div class="w-full max-w-4xl p-10 flex flex-col space-y-12 animate-[flicker_0.15s_infinite]">
+<div class="flex flex-col items-center justify-center space-y-4">
+<div class="relative group">
+<h1 class="font-display-lg text-display-lg text-primary drop-shadow-[0_0_12px_#fface8] tracking-tighter text-center uppercase animate-[chromatic_2s_infinite]">
+                        ARKAMADOID
+                    </h1>
+<div class="absolute -inset-4 bg-primary/10 blur-2xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<p class="font-label-sm text-label-sm text-secondary-fixed-dim glow-text-cyan tracking-widest uppercase">
+                    Retro-Engine v2.4.88 // CRT-ENABLED
+                </p>
+</div>
+<div class="lcd-display p-gutter space-y-6 rounded-lg relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent pointer-events-none"></div>
+<div class="font-display-lg text-headline-lg-mobile md:text-headline-lg text-secondary-fixed-dim lowercase h-48 md:h-64 flex flex-col justify-end space-y-2 overflow-hidden" id="terminal-output">
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-end font-label-sm text-label-sm text-primary-fixed-dim mb-1">
+<span class="uppercase" id="progress-status">Initializing Core...</span>
+<span id="progress-percent">0%</span>
+</div>
+<div class="w-full h-8 bg-surface-container-lowest border border-outline-variant overflow-hidden p-1 relative">
+<div class="h-full w-0 bg-primary-container shadow-[0_0_15px_#ff24e4] transition-all duration-300 ease-out" id="progress-bar"></div>
+<div class="absolute inset-0 opacity-20 pointer-events-none bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.1)_10px,rgba(255,255,255,0.1)_20px)]"></div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-low p-4 border border-outline-variant rounded-lg flex items-center space-x-4 group hover:border-primary-fixed-dim transition-colors">
+<div class="w-12 h-12 rounded-full flex items-center justify-center bg-surface-container-high text-secondary-fixed-dim shadow-[inset_0_0_8px_rgba(0,0,0,0.5)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">videogame_asset</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Hardware</p>
+<p class="font-body-md text-body-md text-on-surface">V-SYNC ACTIVE</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 border border-outline-variant rounded-lg flex items-center space-x-4 group hover:border-primary-fixed-dim transition-colors">
+<div class="w-12 h-12 rounded-full flex items-center justify-center bg-surface-container-high text-secondary-fixed-dim shadow-[inset_0_0_8px_rgba(0,0,0,0.5)]">
+<span class="material-symbols-outlined">memory</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Memory</p>
+<p class="font-body-md text-body-md text-on-surface">640KB OK</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 border border-outline-variant rounded-lg flex items-center space-x-4 group hover:border-primary-fixed-dim transition-colors">
+<div class="w-12 h-12 rounded-full flex items-center justify-center bg-surface-container-high text-secondary-fixed-dim shadow-[inset_0_0_8px_rgba(0,0,0,0.5)]">
+<span class="material-symbols-outlined">signal_cellular_alt</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Network</p>
+<p class="font-body-md text-body-md text-on-surface">CONNECTED</p>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-margin-mobile md:bottom-margin-desktop text-on-surface-variant font-label-sm text-label-sm tracking-widest uppercase opacity-40">
+            © 198X ARKAMADOID INDUSTRIES // PRESS F1 FOR HELP
+        </div>
+</main>
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-gutter pb-unit bg-surface-container-low border-t border-outline-variant shadow-[0_-4px_20px_rgba(0,219,233,0.2)] md:hidden">
+<div class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 p-unit">
+<span class="material-symbols-outlined" data-icon="play_arrow">play_arrow</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 p-unit">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 p-unit">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant opacity-60 p-unit">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+</div>
+</footer>
+<script>
+        const terminalLines = [
+            "> SYSTEM INITIALIZING...",
+            "> CHECKING BIOS INTEGRITY...",
+            "> KERNEL LOADED: 0x88FF42",
+            "> MOUNTING ASSETS...",
+            "> LOADING SPRITE SHEETS...",
+            "> COMPILING SHADERS...",
+            "> SYNCING CRT REFRESH RATE...",
+            "> INITIALIZING PHYSICS ENGINE...",
+            "> GENERATING BRICK MESHES...",
+            "> ALL SYSTEMS GREEN.",
+            "> READY TO START."
+        ];
+
+        const terminalOutput = document.getElementById('terminal-output');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
+        const progressStatus = document.getElementById('progress-status');
+
+        let currentLine = 0;
+        let progress = 0;
+
+        function typeLine() {
+            if (currentLine < terminalLines.length) {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'glow-text-cyan';
+                lineDiv.innerHTML = `<span class="opacity-50">#</span> ${terminalLines[currentLine]}<span class="cursor-blink ml-1">_</span>`;
+                
+                if (terminalOutput.lastChild) {
+                    terminalOutput.lastChild.querySelector('.cursor-blink')?.remove();
+                }
+
+                terminalOutput.appendChild(lineDiv);
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                currentLine++;
+
+                const delay = Math.random() * 400 + 200;
+                setTimeout(typeLine, delay);
+            }
+        }
+
+        function updateProgress() {
+            if (progress < 100) {
+                progress += Math.random() * 5;
+                if (progress > 100) progress = 100;
+                
+                progressBar.style.width = `${progress}%`;
+                progressPercent.innerText = `${Math.floor(progress)}%`;
+
+                if (progress < 30) progressStatus.innerText = "Initializing Core...";
+                else if (progress < 60) progressStatus.innerText = "Loading Assets...";
+                else if (progress < 90) progressStatus.innerText = "Compiling Shaders...";
+                else progressStatus.innerText = "Finalizing...";
+
+                setTimeout(updateProgress, Math.random() * 300 + 50);
+            } else {
+                progressStatus.innerText = "SYSTEM READY";
+                progressStatus.classList.add('animate-pulse');
+            }
+        }
+
+        window.onload = () => {
+            typeLine();
+            updateProgress();
+        };
+
+        // Click interaction for arcade feel
+        document.body.addEventListener('click', () => {
+            const clickSound = new Audio(); // Placeholder for sound logic
+            document.body.style.filter = 'brightness(1.5) contrast(1.2)';
+            setTimeout(() => {
+                document.body.style.filter = 'none';
+            }, 50);
+        });
+    </script>
+</body></html>
