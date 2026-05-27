@@ -16,6 +16,7 @@ class GameOverScreen(
     game: ArkamadoidGame,
     val finalScore: Int,
     val finalLevel: Int = 1,
+    val daily: Boolean = false,
 ) : BaseScreen(game) {
 
     private val batch = SpriteBatch()
@@ -68,11 +69,27 @@ class GameOverScreen(
         layout.setText(title, "GAME OVER")
         title.draw(batch, "GAME OVER", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 160f)
 
+        if (daily) {
+            val dailyFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
+            dailyFont.color = Theme.Palette.TERTIARY
+            layout.setText(dailyFont, "DAILY CHALLENGE")
+            dailyFont.draw(batch, "DAILY CHALLENGE", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 95f)
+        }
+
         val scoreFont = game.fonts[Theme.FontSize.HEADLINE, true]
         scoreFont.color = Theme.Palette.TERTIARY
         val scoreLine = "SCORE %07d".format(finalScore)
         layout.setText(scoreFont, scoreLine)
         scoreFont.draw(batch, scoreLine, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 20f)
+
+        if (daily) {
+            val bestFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
+            bestFont.color = Theme.Palette.PRIMARY
+            val best = game.prefs.data.dailyBestScore
+            val line = "TODAY BEST  %07d".format(best)
+            layout.setText(bestFont, line)
+            bestFont.draw(batch, line, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 30f)
+        }
 
         if (rank in 1..10) {
             val rankFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]

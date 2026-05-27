@@ -10,6 +10,7 @@ import com.arkamadoid.entities.LaserBolt
 import com.arkamadoid.entities.PowerUp
 import com.arkamadoid.gameplay.CollisionResolver
 import com.arkamadoid.gameplay.CollisionResolver.WallHit
+import com.arkamadoid.gameplay.DailySeed
 import com.arkamadoid.gameplay.GameState
 import com.arkamadoid.gameplay.Level
 import com.arkamadoid.gameplay.LevelLoader
@@ -102,6 +103,11 @@ class GameplayScreen(
         Gdx.input.setCatchKey(Input.Keys.BACK, true)
         touch.mode = game.prefs.data.inputMode
         touch.sensitivity = game.prefs.data.sensitivity
+        if (mode == GameMode.DAILY) {
+            state.lives = 1
+            state.levelIndex = DailySeed.levelIndex(GameConfig.MAX_LEVELS)
+            state.currentLevel = null
+        }
         if (state.currentLevel == null) loadLevel(state.levelIndex)
         game.audio.playMusic(MusicTrack.GAMEPLAY_EARLY)
     }
@@ -401,6 +407,10 @@ class GameplayScreen(
         }
         state.lives -= 1
         if (state.lives <= 0) {
+            if (mode == GameMode.DAILY) {
+                recordDailyAndExit()
+                return
+            }
             disposeOnHide = true
             game.setScreen(GameOverScreen(game, state.score, state.levelIndex))
             return
@@ -409,6 +419,10 @@ class GameplayScreen(
     }
 
     private fun onLevelComplete() {
+        if (mode == GameMode.DAILY) {
+            recordDailyAndExit()
+            return
+        }
         val next = state.levelIndex + 1
         val handle = Gdx.files.internal("levels/%02d.json".format(next))
         if (!handle.exists()) {
@@ -423,6 +437,12 @@ class GameplayScreen(
         }
         state.levelIndex = next
         loadLevel(next)
+    }
+
+    private fun recordDailyAndExit() {
+        game.prefs.recordDailyScore(DailySeed.dateKey(), state.score)
+        disposeOnHide = true
+        game.setScreen(GameOverScreen(game, state.score, state.levelIndex, daily = true))
     }
 
     private fun applyShakeOffset() {
@@ -634,6 +654,15 @@ class GameplayScreen(
         val hint = "SENSORS ACTIVE   SLIDE TO STEER"
         layout.setText(hintFont, hint)
         hintFont.draw(batch, hint, (UI_W - layout.width) / 2f, 80f)
+
+        // marker DAILY (sostituisce il SECTOR number nel HUD-top? no: aggiungo sopra il SECTOR card)
+        if (mode == GameMode.DAILY) {
+            val dailyFont = game.fonts[Theme.FontSize.LABEL_SM, true]
+            dailyFont.color = Theme.Palette.TERTIARY
+            val dailyTxt = "DAILY CHALLENGE   ${DailySeed.dateKey()}"
+            layout.setText(dailyFont, dailyTxt)
+            dailyFont.draw(batch, dailyTxt, (UI_W - layout.width) / 2f, UI_H - 40f)
+        }
 
         // TAP TO LAUNCH if at least one ball is stuck
         if (state.balls.any { it.stuckToPaddle }) {

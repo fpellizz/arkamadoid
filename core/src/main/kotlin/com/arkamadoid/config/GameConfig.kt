@@ -9,6 +9,7 @@ object GameConfig {
 
     const val START_LIVES = 3
     const val EXTRA_LIFE_EVERY = 20_000
+    const val MAX_LEVELS = 24
 
     const val BALL_INITIAL_SPEED = 180f
     const val BALL_SPEED_INCREMENT_PER_LEVEL = 12f

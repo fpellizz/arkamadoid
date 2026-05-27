@@ -30,6 +30,25 @@ class PreferencesStore {
         prefs.flush()
     }
 
+    /**
+     * Registra il punteggio del DAILY del giorno. Se la data è cambiata, resetta il best
+     * a questo score; altrimenti tiene il max. Ritorna il best del giorno post-update.
+     */
+    fun recordDailyScore(dateKey: String, score: Int): Int {
+        if (data.dailyDate != dateKey) {
+            data.dailyDate = dateKey
+            data.dailyBestScore = score
+        } else if (score > data.dailyBestScore) {
+            data.dailyBestScore = score
+        }
+        save()
+        return data.dailyBestScore
+    }
+
+    /** Best score del giorno se la data combacia, altrimenti 0. */
+    fun dailyBestFor(dateKey: String): Int =
+        if (data.dailyDate == dateKey) data.dailyBestScore else 0
+
     /** Inserisce uno score nella top-N, ritorna il rank 1-based (0 = fuori top). */
     fun submitScore(initials: String, score: Int, level: Int, top: Int = 10): Int {
         val entry = SaveData.HighScoreEntry(initials, score, level)

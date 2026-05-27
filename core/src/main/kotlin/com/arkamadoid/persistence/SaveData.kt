@@ -14,6 +14,8 @@ data class SaveData(
     var reduceMotion: Boolean = false,
     var haptics: Boolean = true,
     var language: String = "it",
+    var dailyDate: String = "",
+    var dailyBestScore: Int = 0,
 ) {
     data class HighScoreEntry(
         val initials: String = "AAA",
