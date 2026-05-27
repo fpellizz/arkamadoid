@@ -1,0 +1,24 @@
+{
+  "name": "SECTOR 06",
+  "ballSpeed": 255,
+  "grid": {
+    "cols": 13,
+    "rows": 6,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 248
+  },
+  "rows": [
+    "GGGGGGGGGGGGG",
+    "GGGGGGGGGGGGG",
+    "G.G.G.G.G.G.G",
+    "GGGGGGGGGGGGG",
+    "GGGGGGGGGGGGG",
+    "G.G.G.G.G.G.G"
+  ],
+  "legend": {
+    "G": "GOLD",
+    ".": "EMPTY"
+  }
+}

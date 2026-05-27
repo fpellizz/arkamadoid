@@ -1,0 +1,30 @@
+{
+  "name": "SECTOR 05",
+  "ballSpeed": 240,
+  "grid": {
+    "cols": 13,
+    "rows": 6,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 248
+  },
+  "rows": [
+    "I.NNN.I.NNN.I",
+    "I.RRR.I.YYY.I",
+    "I.YYY.I.GGG.I",
+    "I.GGG.I.RRR.I",
+    "I.TTT.I.NNN.I",
+    "I..X..I..X..I"
+  ],
+  "legend": {
+    "I": "INDESTRUCTIBLE",
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "T": "TOUGH",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

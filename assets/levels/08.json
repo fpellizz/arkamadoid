@@ -1,0 +1,28 @@
+{
+  "name": "SECTOR 08",
+  "ballSpeed": 285,
+  "grid": {
+    "cols": 13,
+    "rows": 7,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 256
+  },
+  "rows": [
+    "VVVVV.X.VVVVV",
+    "TTTTTTTTTTTTT",
+    ".V.X.V.X.V.X.",
+    "TTTTTTTTTTTTT",
+    "VVVVV.X.VVVVV",
+    "I...........I",
+    "IIIII...IIIII"
+  ],
+  "legend": {
+    "V": "VERY_TOUGH",
+    "T": "TOUGH",
+    "X": "EXPLOSIVE",
+    "I": "INDESTRUCTIBLE",
+    ".": "EMPTY"
+  }
+}
