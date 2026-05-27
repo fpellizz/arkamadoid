@@ -58,3 +58,7 @@ android/assets/
 ## Archived raw assets (not packaged)
 _archive/
 .aider*
+
+## Mockup / design scratch (kept locale, never packaged)
+_mockups/
+**/_mockups/
