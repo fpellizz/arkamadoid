@@ -2,6 +2,7 @@ package com.arkamadoid
 
 import com.arkamadoid.audio.AudioManager
 import com.arkamadoid.persistence.PreferencesStore
+import com.arkamadoid.render.CrtRenderer
 import com.arkamadoid.screens.BootScreen
 import com.arkamadoid.services.PlatformServices
 import com.arkamadoid.theme.FontManager
@@ -18,22 +19,38 @@ class ArkamadoidGame(
         private set
     lateinit var fonts: FontManager
         private set
+    lateinit var crt: CrtRenderer
+        private set
 
     override fun create() {
         prefs = PreferencesStore()
         audio = AudioManager(prefs)
         fonts = FontManager()
+        crt = CrtRenderer()
+        crt.resize(Gdx.graphics.width, Gdx.graphics.height)
         setScreen(BootScreen(this))
     }
 
     override fun render() {
         audio.update(Gdx.graphics.deltaTime)
-        super.render()
+        if (prefs.data.crtShader) {
+            crt.beginCapture()
+            super.render()
+            crt.endCaptureAndDraw()
+        } else {
+            super.render()
+        }
+    }
+
+    override fun resize(width: Int, height: Int) {
+        super.resize(width, height)
+        crt.resize(width, height)
     }
 
     override fun dispose() {
         screen?.dispose()
         fonts.dispose()
         audio.dispose()
+        crt.dispose()
     }
 }
