@@ -1,14 +1,14 @@
 {
-  "_comment": "Mappa scena_logica → file. Cambia i valori per sostituire la colonna sonora di uno screen senza ricompilare. I file vivono in assets/audio/music/.",
+  "_comment": "Mappa scena_logica → file. Cambia i valori per sostituire la colonna sonora di uno screen senza ricompilare. I file vivono in assets/audio/music/. Nomi snake_case obbligatori (MediaPlayer Android non gestisce bene spazi).",
   "tracks": {
-    "MENU":             "Pixel Spiral.ogg",
-    "ATTRACT":          "Pixel Spiral.ogg",
-    "GAMEPLAY_EARLY":   "Neon Tetris Run.ogg",
-    "GAMEPLAY_MID":     "Block by Block.ogg",
-    "GAMEPLAY_LATE":    "Blockfall Signal.ogg",
-    "BOSS":             "Blockfall Anthem.ogg",
-    "STAGE_CLEAR":      "Block Drop Shuffle.ogg",
-    "GAME_OVER":        "Neon Cube fall.ogg"
+    "MENU":             "pixel_spiral.ogg",
+    "ATTRACT":          "pixel_spiral.ogg",
+    "GAMEPLAY_EARLY":   "neon_tetris_run.ogg",
+    "GAMEPLAY_MID":     "block_by_block.ogg",
+    "GAMEPLAY_LATE":    "blockfall_signal.ogg",
+    "BOSS":             "blockfall_anthem.ogg",
+    "STAGE_CLEAR":      "block_drop_shuffle.ogg",
+    "GAME_OVER":        "neon_cube_fall.ogg"
   },
   "loop": {
     "MENU": true,
