@@ -32,6 +32,10 @@ captures/
 .vscode/
 bin/
 
+## REST Client scratch files (VS Code / JetBrains "HTTP Client")
+*.rest
+*.http
+
 ## Claude Code local state
 .claude/
 
