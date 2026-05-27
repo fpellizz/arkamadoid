@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector2
 class Ball(
     var x: Float = 0f,
     var y: Float = 0f,
-    val radius: Float = 2f,
+    val radius: Float = 3f,
 ) {
     val velocity = Vector2(0f, 0f)
     var speed: Float = GameConfig.BALL_INITIAL_SPEED

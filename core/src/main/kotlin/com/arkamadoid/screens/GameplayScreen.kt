@@ -48,12 +48,22 @@ class GameplayScreen(
     private val unprojectTmp = Vector3()
     private val tmpUi = Vector3()
     private val damagedTint = Color()
+    private val tmpColor = Color()
     private val pauseRect = Rectangle(UI_W - 170f, 40f, 130f, 100f)
-    private val skipSectorRect = Rectangle(UI_W / 2f - 140f, UI_H - 100f, 280f, 90f)
+    private val scoreCardRect = Rectangle(40f, UI_H - 200f, 220f, 130f)
+    private val sectorCardRect = Rectangle((UI_W - 200f) / 2f, UI_H - 200f, 200f, 130f)
+    private val integrityCardRect = Rectangle(UI_W - 260f, UI_H - 200f, 220f, 130f)
+    private val skipSectorRect = Rectangle(sectorCardRect.x, sectorCardRect.y, sectorCardRect.width, sectorCardRect.height)
+
+    private enum class HudCardSide { LEFT, RIGHT, TOP, BOTTOM }
 
     private var disposed = false
     private var disposeOnHide = false
     private var lastSkipTapAt = 0L
+
+    private var popupText: String? = null
+    private val popupColor = Color()
+    private var popupRemaining = 0f
 
     private val playFieldHeight = GameConfig.VIRTUAL_HEIGHT.toFloat()
     private val playFieldWidth = GameConfig.VIRTUAL_WIDTH.toFloat()
@@ -83,6 +93,8 @@ class GameplayScreen(
 
     override fun show() {
         Gdx.input.setCatchKey(Input.Keys.BACK, true)
+        touch.mode = game.prefs.data.inputMode
+        touch.sensitivity = game.prefs.data.sensitivity
         if (state.currentLevel == null) loadLevel(state.levelIndex)
         game.audio.playMusic(MusicTrack.GAMEPLAY_EARLY)
     }
@@ -135,6 +147,7 @@ class GameplayScreen(
             accumulator -= GameConfig.FIXED_STEP
         }
         particles.update(delta)
+        expirePopupIfDone(delta)
     }
 
     private fun handleInput() {
@@ -282,6 +295,7 @@ class GameplayScreen(
 
     private fun applyPowerUp(type: PowerUpType) {
         game.audio.playSfx(AudioManager.Sfx.POWERUP)
+        triggerPickupPopup(type)
         when (type) {
             PowerUpType.EXPAND -> state.paddle.width = GameConfig.PADDLE_EXPAND_WIDTH.toFloat()
             PowerUpType.SLOW -> {
@@ -325,7 +339,7 @@ class GameplayScreen(
         state.lives -= 1
         if (state.lives <= 0) {
             disposeOnHide = true
-            game.setScreen(GameOverScreen(game, state.score))
+            game.setScreen(GameOverScreen(game, state.score, state.levelIndex))
             return
         }
         positionPaddleAndBall()
@@ -341,7 +355,7 @@ class GameplayScreen(
                 return
             }
             disposeOnHide = true
-            game.setScreen(GameOverScreen(game, state.score))
+            game.setScreen(GameOverScreen(game, state.score, state.levelIndex))
             return
         }
         state.levelIndex = next
@@ -350,6 +364,37 @@ class GameplayScreen(
 
     private fun brickColorOf(brick: Brick): Color =
         brickPalette[brick.colorIndex % brickPalette.size]
+
+    private fun triggerPickupPopup(type: PowerUpType) {
+        popupText = pickupLabel(type)
+        popupColor.set(powerUpColor(type))
+        popupRemaining = POPUP_LIFETIME
+    }
+
+    private fun expirePopupIfDone(delta: Float) {
+        if (popupRemaining <= 0f) return
+        popupRemaining -= delta
+        if (popupRemaining > 0f) return
+        val p = state.paddle
+        particles.burstAt(
+            p.x + p.width / 2f,
+            p.y + p.height + 8f,
+            popupColor,
+            count = 22,
+        )
+        popupText = null
+        popupRemaining = 0f
+    }
+
+    private fun pickupLabel(type: PowerUpType): String = when (type) {
+        PowerUpType.EXPAND -> "EXPAND!"
+        PowerUpType.SLOW -> "SLOW BALL!"
+        PowerUpType.LASER -> "LASER!"
+        PowerUpType.MULTI -> "MULTIBALL!"
+        PowerUpType.CATCH -> "CATCH!"
+        PowerUpType.LIFE -> "EXTRA LIFE!"
+        PowerUpType.WARP -> "WARP!"
+    }
 
     private fun powerUpColor(type: PowerUpType): Color = when (type) {
         PowerUpType.EXPAND -> Theme.Palette.SECONDARY_FIXED
@@ -361,42 +406,135 @@ class GameplayScreen(
         PowerUpType.WARP -> Theme.Palette.PRIMARY_FIXED
     }
 
+    private fun drawGlowRect(x: Float, y: Float, w: Float, h: Float, color: Color) {
+        tmpColor.set(color).also { it.a = 0.10f }
+        shapes.color = tmpColor
+        shapes.rect(x - 2f, y - 2f, w + 4f, h + 4f)
+        tmpColor.set(color).also { it.a = 0.28f }
+        shapes.color = tmpColor
+        shapes.rect(x - 1f, y - 1f, w + 2f, h + 2f)
+        shapes.color = color
+        shapes.rect(x, y, w, h)
+    }
+
+    private fun drawGlowBall(cx: Float, cy: Float, r: Float) {
+        tmpColor.set(Theme.Palette.PRIMARY_CONTAINER).also { it.a = 0.10f }
+        shapes.color = tmpColor
+        shapes.circle(cx, cy, r * 3f, 16)
+        tmpColor.set(Theme.Palette.PRIMARY_CONTAINER).also { it.a = 0.28f }
+        shapes.color = tmpColor
+        shapes.circle(cx, cy, r * 2f, 14)
+        shapes.color = Color.WHITE
+        shapes.circle(cx, cy, r, 12)
+    }
+
+    private fun drawCapsule(x: Float, y: Float, w: Float, h: Float, color: Color) {
+        val rad = h / 2f
+        // glow halo
+        tmpColor.set(color).also { it.a = 0.10f }
+        shapes.color = tmpColor
+        shapes.rect(x - 2f, y - 2f, w + 4f, h + 4f)
+        tmpColor.set(color).also { it.a = 0.28f }
+        shapes.color = tmpColor
+        shapes.rect(x - 1f, y - 1f, w + 2f, h + 2f)
+        // capsule body
+        shapes.color = color
+        shapes.circle(x + rad, y + rad, rad, 12)
+        shapes.circle(x + w - rad, y + rad, rad, 12)
+        shapes.rect(x + rad, y, w - 2f * rad, h)
+        // inner highlight bar
+        tmpColor.set(Color.WHITE).also { it.a = 0.6f }
+        shapes.color = tmpColor
+        val inset = w * 0.08f
+        shapes.rect(x + inset, y + h * 0.4f, w - 2f * inset, h * 0.25f)
+    }
+
+    private fun drawHudCard(r: Rectangle, borderColor: Color, side: HudCardSide) {
+        tmpColor.set(Theme.Palette.SURFACE_CONTAINER_LOW).also { it.a = 0.7f }
+        shapes.color = tmpColor
+        shapes.rect(r.x, r.y, r.width, r.height)
+        shapes.color = borderColor
+        val t = 5f
+        when (side) {
+            HudCardSide.LEFT -> shapes.rect(r.x, r.y, t, r.height)
+            HudCardSide.RIGHT -> shapes.rect(r.x + r.width - t, r.y, t, r.height)
+            HudCardSide.BOTTOM -> shapes.rect(r.x, r.y, r.width, t)
+            HudCardSide.TOP -> shapes.rect(r.x, r.y + r.height - t, r.width, t)
+        }
+    }
+
     private fun draw() {
         Gdx.gl.glClearColor(0.054f, 0.054f, 0.078f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+
+        // === GAME VIEWPORT ===
         gameViewport.apply()
         shapes.projectionMatrix = gameViewport.camera.combined
+
+        // background grid (sottilissimo neon pink)
+        shapes.begin(ShapeRenderer.ShapeType.Line)
+        tmpColor.set(Theme.Palette.PRIMARY_FIXED).also { it.a = 0.14f }
+        shapes.color = tmpColor
+        var gx = 0f
+        while (gx <= playFieldWidth) { shapes.line(gx, 0f, gx, playFieldHeight); gx += 16f }
+        var gy = 0f
+        while (gy <= playFieldHeight) { shapes.line(0f, gy, playFieldWidth, gy); gy += 16f }
+        shapes.end()
+
         shapes.begin(ShapeRenderer.ShapeType.Filled)
 
+        // bricks (con glow, 1px gap per separazione visiva)
         state.currentLevel?.bricks?.forEach { brick ->
             if (!brick.alive) return@forEach
             val base = brickColorOf(brick)
-            shapes.color = if (brick.hp < brick.type.hp) {
-                damagedTint.set(base).lerp(Color.WHITE, 0.35f)
-            } else base
-            shapes.rect(brick.x, brick.y, brick.width, brick.height)
+            val col = if (brick.hp < brick.type.hp) damagedTint.set(base).lerp(Color.WHITE, 0.35f) else base
+            drawGlowRect(brick.x + 0.5f, brick.y + 0.5f, brick.width - 1f, brick.height - 1f, col)
         }
 
+        // power-up drops (con glow)
         for (pu in droppingPowerUps) {
-            shapes.color = powerUpColor(pu.type)
-            shapes.rect(pu.x, pu.y, 16f, 8f)
+            drawGlowRect(pu.x, pu.y, 16f, 8f, powerUpColor(pu.type))
         }
 
+        // particles
         particles.render(shapes)
 
+        // paddle (capsule cyan con inner highlight)
         val p = state.paddle
-        shapes.color = Theme.Palette.SECONDARY_CONTAINER
-        shapes.rect(p.x, p.y, p.width, p.height)
+        drawCapsule(p.x, p.y, p.width, p.height, Theme.Palette.SECONDARY_CONTAINER)
 
-        shapes.color = Theme.Palette.PRIMARY_CONTAINER
-        for (ball in state.balls) shapes.circle(ball.x, ball.y, ball.radius, 12)
+        // balls (bianche con alone magenta)
+        for (ball in state.balls) drawGlowBall(ball.x, ball.y, ball.radius)
 
         shapes.end()
 
+        // === UI VIEWPORT ===
         uiViewport.apply()
         shapes.projectionMatrix = uiViewport.camera.combined
         shapes.begin(ShapeRenderer.ShapeType.Filled)
+
+        // HUD cards
+        drawHudCard(scoreCardRect, Theme.Palette.TERTIARY, HudCardSide.LEFT)
+        drawHudCard(sectorCardRect, Theme.Palette.PRIMARY_CONTAINER, HudCardSide.BOTTOM)
+        drawHudCard(integrityCardRect, Theme.Palette.SECONDARY_FIXED_DIM, HudCardSide.RIGHT)
+
+        // vite (quadrati cyan con glow), o niente se PRACTICE (mostro INF dopo come testo)
+        if (mode != GameMode.PRACTICE) {
+            val livesShown = state.lives.coerceIn(0, 5)
+            val sizeL = 22f
+            val gap = 10f
+            val totalW = livesShown * sizeL + (livesShown - 1).coerceAtLeast(0) * gap
+            val startX = integrityCardRect.x + integrityCardRect.width - 20f - totalW
+            val ly = integrityCardRect.y + 32f
+            for (i in 0 until livesShown) {
+                drawGlowRect(startX + i * (sizeL + gap), ly, sizeL, sizeL, Theme.Palette.SECONDARY_FIXED_DIM)
+            }
+        }
+
+        // pause button bars
         shapes.color = Theme.Palette.PRIMARY_CONTAINER
         val barW = 16f
         val barH = 56f
@@ -404,34 +542,76 @@ class GameplayScreen(
         val cy = pauseRect.y + pauseRect.height / 2f
         shapes.rect(cx - barW - 8f, cy - barH / 2f, barW, barH)
         shapes.rect(cx + 8f, cy - barH / 2f, barW, barH)
+
         shapes.end()
 
+        // text overlay
         batch.projectionMatrix = uiViewport.camera.combined
         batch.begin()
 
-        val font = game.fonts[Theme.FontSize.BODY_MD, true]
+        val labelFont = game.fonts[Theme.FontSize.LABEL_SM, true]
+        val valueFont = game.fonts[Theme.FontSize.HEADLINE, true]
 
-        font.color = Theme.Palette.SECONDARY_CONTAINER
-        font.draw(batch, "SCORE %07d".format(state.score), 40f, UI_H - 40f)
+        // SCORE card
+        labelFont.color = Theme.Palette.TERTIARY
+        labelFont.draw(batch, "DATA_STORE", scoreCardRect.x + 18f, scoreCardRect.y + scoreCardRect.height - 20f)
+        valueFont.color = Theme.Palette.TERTIARY
+        valueFont.draw(batch, "%07d".format(state.score), scoreCardRect.x + 18f, scoreCardRect.y + 50f)
 
-        font.color = Theme.Palette.TERTIARY
-        val sector = "SECTOR %02d".format(state.levelIndex)
-        layout.setText(font, sector)
-        font.draw(batch, sector, (UI_W - layout.width) / 2f, UI_H - 40f)
+        // SECTOR card (label + valore centrati)
+        labelFont.color = Theme.Palette.PRIMARY_CONTAINER
+        val sectorLabel = "SECTOR"
+        layout.setText(labelFont, sectorLabel)
+        labelFont.draw(batch, sectorLabel, sectorCardRect.x + (sectorCardRect.width - layout.width) / 2f, sectorCardRect.y + sectorCardRect.height - 20f)
+        valueFont.color = Theme.Palette.PRIMARY_CONTAINER
+        val sectorVal = "%02d".format(state.levelIndex)
+        layout.setText(valueFont, sectorVal)
+        valueFont.draw(batch, sectorVal, sectorCardRect.x + (sectorCardRect.width - layout.width) / 2f, sectorCardRect.y + 50f)
 
-        font.color = Theme.Palette.PRIMARY_CONTAINER
-        val integrity = if (mode == GameMode.PRACTICE) "INTEGRITY INF" else "INTEGRITY %d".format(state.lives.coerceAtLeast(0))
-        layout.setText(font, integrity)
-        font.draw(batch, integrity, UI_W - 40f - layout.width, UI_H - 40f)
+        // INTEGRITY card (label allineato a destra)
+        labelFont.color = Theme.Palette.SECONDARY_FIXED_DIM
+        val intLabel = "INTEGRITY"
+        layout.setText(labelFont, intLabel)
+        labelFont.draw(batch, intLabel, integrityCardRect.x + integrityCardRect.width - 18f - layout.width, integrityCardRect.y + integrityCardRect.height - 20f)
+        if (mode == GameMode.PRACTICE) {
+            valueFont.color = Theme.Palette.SECONDARY_FIXED_DIM
+            val infStr = "INF"
+            layout.setText(valueFont, infStr)
+            valueFont.draw(batch, infStr, integrityCardRect.x + integrityCardRect.width - 18f - layout.width, integrityCardRect.y + 50f)
+        }
 
+        // hint footer "SENSORS ACTIVE   SLIDE TO STEER"
+        val hintFont = game.fonts[Theme.FontSize.LABEL_SM, true]
+        hintFont.color = Theme.Palette.SECONDARY_FIXED_DIM
+        val hint = "SENSORS ACTIVE   SLIDE TO STEER"
+        layout.setText(hintFont, hint)
+        hintFont.draw(batch, hint, (UI_W - layout.width) / 2f, 80f)
+
+        // TAP TO LAUNCH if at least one ball is stuck
         if (state.balls.any { it.stuckToPaddle }) {
-            font.color = Theme.Palette.PRIMARY_FIXED
-            val hint = "TAP TO LAUNCH"
-            layout.setText(font, hint)
-            font.draw(batch, hint, (UI_W - layout.width) / 2f, 120f)
+            val launchFont = game.fonts[Theme.FontSize.BODY_MD, true]
+            launchFont.color = Theme.Palette.PRIMARY_FIXED
+            val launchHint = "TAP TO LAUNCH"
+            layout.setText(launchFont, launchHint)
+            launchFont.draw(batch, launchHint, (UI_W - layout.width) / 2f, 140f)
+        }
+
+        // power-up pickup popup (durata breve, esplode alla fine)
+        val popupTextLocal = popupText
+        if (popupTextLocal != null && popupRemaining > 0f) {
+            val popupFont = game.fonts[Theme.FontSize.DISPLAY, true]
+            val t = (popupRemaining / POPUP_LIFETIME).coerceIn(0f, 1f)
+            tmpColor.set(popupColor).also { it.a = (t * 2f).coerceIn(0.4f, 1f) }
+            popupFont.color = tmpColor
+            layout.setText(popupFont, popupTextLocal)
+            popupFont.draw(batch, popupTextLocal, (UI_W - layout.width) / 2f, UI_H * 0.5f)
+            popupFont.color = tmpColor.set(Color.WHITE)
         }
 
         batch.end()
+        Gdx.gl.glDisable(GL20.GL_BLEND)
+
+        com.arkamadoid.render.BezelFrame.draw(shapes, uiViewport, UI_W, UI_H)
     }
 
     override fun resize(width: Int, height: Int) {
@@ -454,5 +634,6 @@ class GameplayScreen(
         const val UI_W = 720f
         const val UI_H = 1280f
         const val PADDLE_Y = 18f
+        const val POPUP_LIFETIME = 0.45f
     }
 }
