@@ -4,6 +4,7 @@ import com.arkamadoid.ArkamadoidGame
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
@@ -17,6 +18,9 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
     private val viewport = FitViewport(VIRTUAL_W, VIRTUAL_H)
     private val layout = GlyphLayout()
     private var elapsed = 0f
+    private val logo: Texture = Texture(Gdx.files.internal("sprites/logo.png")).apply {
+        setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+    }
 
     override fun render(delta: Float) {
         elapsed += delta
@@ -49,12 +53,12 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
         // LOGO ARKAMADOID centrale, con pulsazione leggera
         val pulse = 1f + 0.04f * sin(elapsed * 2f)
-        val titleFont = game.fonts[Theme.FontSize.DISPLAY, true]
-        titleFont.color = Theme.Palette.PRIMARY
-        titleFont.data.setScale(pulse)
-        layout.setText(titleFont, "ARKAMADOID")
-        titleFont.draw(batch, "ARKAMADOID", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 200f)
-        titleFont.data.setScale(1f)
+        val baseSize = 480f
+        val w = baseSize * pulse
+        val h = baseSize * pulse
+        val cx = VIRTUAL_W / 2f
+        val cy = 880f
+        batch.draw(logo, cx - w / 2f, cy - h / 2f, w, h)
 
         // INSERT COIN - blink 1.5 Hz
         val blink = (elapsed * 1.5f).toInt() % 2 == 0
@@ -107,6 +111,7 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
     override fun dispose() {
         batch.dispose()
         shapes.dispose()
+        logo.dispose()
     }
 
     companion object {
