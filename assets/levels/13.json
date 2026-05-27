@@ -1,0 +1,30 @@
+{
+  "name": "SECTOR 13",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 7,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 256
+  },
+  "rows": [
+    "NNNNNNNNNNNNN",
+    "RRRRRRRRRRRRR",
+    "I.II.....II.I",
+    "YYYYYYYYYYYYY",
+    "TTTTTTTTTTTTT",
+    "I...........I",
+    "X.X.X.X.X.X.X"
+  ],
+  "legend": {
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "T": "TOUGH",
+    "I": "INDESTRUCTIBLE",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

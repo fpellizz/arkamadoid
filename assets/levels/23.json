@@ -1,0 +1,31 @@
+{
+  "name": "SECTOR 23",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 264
+  },
+  "rows": [
+    "...NNNNNNN...",
+    "..NRRRRRRRN..",
+    ".NRR.RRR.RRN.",
+    "NRRR.YYY.RRRN",
+    "NRRRRGRGRRRRN",
+    "NRRRRTTTRRRRN",
+    ".NRR.TXT.RRN.",
+    "..NRRTXTRRN.."
+  ],
+  "legend": {
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "T": "TOUGH",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

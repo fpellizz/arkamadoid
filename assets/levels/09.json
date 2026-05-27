@@ -1,0 +1,30 @@
+{
+  "name": "SECTOR 09",
+  "ballSpeed": 295,
+  "grid": {
+    "cols": 13,
+    "rows": 6,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 248
+  },
+  "rows": [
+    "NNNNNNNNNNNNN",
+    ".RRRRRRRRRRR.",
+    "..YYYYYYYYY..",
+    "...TTTTTTT...",
+    "....VVVVV....",
+    ".....GXG....."
+  ],
+  "legend": {
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "T": "TOUGH",
+    "V": "VERY_TOUGH",
+    "G": "GOLD",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

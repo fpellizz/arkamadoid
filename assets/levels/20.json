@@ -1,0 +1,32 @@
+{
+  "name": "SECTOR 20",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 7,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 256
+  },
+  "rows": [
+    "NNNNN.I.NNNNN",
+    "RRRRR.I.RRRRR",
+    "YYYYY.I.YYYYY",
+    "GGGGG.I.GGGGG",
+    "TTTTT.I.TTTTT",
+    "VVVVV.I.VVVVV",
+    "III..X.X..III"
+  ],
+  "legend": {
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "T": "TOUGH",
+    "V": "VERY_TOUGH",
+    "I": "INDESTRUCTIBLE",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

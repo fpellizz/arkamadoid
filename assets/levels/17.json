@@ -1,0 +1,31 @@
+{
+  "name": "SECTOR 17",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 264
+  },
+  "rows": [
+    "N...........N",
+    "NN.........NN",
+    "NRR.......RRN",
+    "NRRY.....YRRN",
+    "NRRYY...YYRRN",
+    "NRRYYG.GYYRRN",
+    "NRRYYGTGYYRRN",
+    ".X.X.X.X.X.X."
+  ],
+  "legend": {
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "T": "TOUGH",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

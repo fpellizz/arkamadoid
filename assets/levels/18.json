@@ -1,0 +1,30 @@
+{
+  "name": "SECTOR 18",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 264
+  },
+  "rows": [
+    "VVVVVVVVVVVVV",
+    "VTTTTTTTTTTTV",
+    "VTYYYYYYYYYTV",
+    "VTYGGGGGGGYTV",
+    "VTYGGXGGGGYTV",
+    "VTYYYYYYYYYTV",
+    "VTTTTTTTTTTTV",
+    "VVVVVVVVVVVVV"
+  ],
+  "legend": {
+    "V": "VERY_TOUGH",
+    "T": "TOUGH",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

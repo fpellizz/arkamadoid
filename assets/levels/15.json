@@ -1,0 +1,31 @@
+{
+  "name": "SECTOR 15",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 7,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 256
+  },
+  "rows": [
+    "......N......",
+    ".....NRN.....",
+    "....NYRYN....",
+    "...NGYRYGN...",
+    "..NTGYRYGTN..",
+    ".VTGGYRYGGTV.",
+    "X..VVTTTVV..X"
+  ],
+  "legend": {
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "T": "TOUGH",
+    "V": "VERY_TOUGH",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

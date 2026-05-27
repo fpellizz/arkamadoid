@@ -1,0 +1,33 @@
+{
+  "name": "SECTOR 22",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 264
+  },
+  "rows": [
+    "III.NNNNN.III",
+    "III.RRRRR.III",
+    "III.YYYYY.III",
+    "GGG.GGGGG.GGG",
+    "III.TTTTT.III",
+    "III.VVVVV.III",
+    "III.XXXXX.III",
+    ".T.T.T.T.T.T."
+  ],
+  "legend": {
+    "I": "INDESTRUCTIBLE",
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "T": "TOUGH",
+    "V": "VERY_TOUGH",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

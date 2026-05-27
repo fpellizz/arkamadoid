@@ -1,0 +1,33 @@
+{
+  "name": "SECTOR 24 / FINAL",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 264
+  },
+  "rows": [
+    "V.V.V.V.V.V.V",
+    ".I.I.I.I.I.I.",
+    "TNRNRNRNRNRNT",
+    "TRYRYRYRYRYRT",
+    "TYGYGYGYGYGYT",
+    "TGTGTGTGTGTGT",
+    "TVTVTVTVTVTVT",
+    "X...X...X...X"
+  ],
+  "legend": {
+    "V": "VERY_TOUGH",
+    "I": "INDESTRUCTIBLE",
+    "T": "TOUGH",
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

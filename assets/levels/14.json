@@ -1,0 +1,32 @@
+{
+  "name": "SECTOR 14",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 7,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 256
+  },
+  "rows": [
+    "N.I.N.I.N.I.N",
+    "R.I.R.I.R.I.R",
+    "Y.I.Y.I.Y.I.Y",
+    "G.I.G.I.G.I.G",
+    "T.I.T.I.T.I.T",
+    "V.I.V.I.V.I.V",
+    "...X.X.X.X..."
+  ],
+  "legend": {
+    "N": "NORMAL",
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "T": "TOUGH",
+    "V": "VERY_TOUGH",
+    "I": "INDESTRUCTIBLE",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

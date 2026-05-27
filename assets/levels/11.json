@@ -1,0 +1,26 @@
+{
+  "name": "SECTOR 11",
+  "ballSpeed": 315,
+  "grid": {
+    "cols": 13,
+    "rows": 6,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 248
+  },
+  "rows": [
+    "V.V.V.V.V.V.V",
+    ".T.T.T.T.T.T.",
+    "V.V.V.V.V.V.V",
+    ".T.T.T.T.T.T.",
+    "V.V.V.V.V.V.V",
+    ".X.X.X.X.X.X."
+  ],
+  "legend": {
+    "V": "VERY_TOUGH",
+    "T": "TOUGH",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "SECTOR 19",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 264
+  },
+  "rows": [
+    "N..NNN.NNN..N",
+    ".NNN.NNN.NNN.",
+    "NNNNNNNNNNNNN",
+    "NN.NNNNNNN.NN",
+    "NN..NNNNN..NN",
+    "..N.......N..",
+    "...G.....G...",
+    "X...........X"
+  ],
+  "legend": {
+    "N": "NORMAL",
+    "G": "GOLD",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

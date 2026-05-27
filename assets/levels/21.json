@@ -1,0 +1,27 @@
+{
+  "name": "SECTOR 21",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 264
+  },
+  "rows": [
+    "YYYYYYYYYYYYY",
+    "YXYXYXYXYXYXY",
+    "YYYYYYYYYYYYY",
+    "YXYXYXYXYXYXY",
+    "YYYYYYYYYYYYY",
+    "YXYXYXYXYXYXY",
+    "YYYYYYYYYYYYY",
+    "......X......"
+  ],
+  "legend": {
+    "Y": "NORMAL",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

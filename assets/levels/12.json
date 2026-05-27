@@ -1,0 +1,28 @@
+{
+  "name": "SECTOR 12",
+  "ballSpeed": 320,
+  "grid": {
+    "cols": 13,
+    "rows": 7,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 256
+  },
+  "rows": [
+    "YYYYYYYYYYYYY",
+    "R.X.R.X.R.X.R",
+    "YYYYYYYYYYYYY",
+    "X.R.X.R.X.R.X",
+    "YYYYYYYYYYYYY",
+    ".X.X.X.X.X.X.",
+    "GG.GG.X.GG.GG"
+  ],
+  "legend": {
+    "Y": "NORMAL",
+    "R": "NORMAL",
+    "G": "GOLD",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}
