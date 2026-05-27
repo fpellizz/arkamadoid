@@ -83,6 +83,33 @@ object PlayfieldRenderer {
     }
 
     /**
+     * Disegna il trail della palla con alpha decrescente.
+     * Da chiamare PRIMA di glowBall così il core finisce sopra.
+     */
+    fun ballTrail(
+        shapes: ShapeRenderer,
+        trailX: FloatArray,
+        trailY: FloatArray,
+        head: Int,
+        count: Int,
+        r: Float,
+    ) {
+        if (count == 0) return
+        val size = trailX.size
+        // dal più vecchio (più dietro) al più recente (più vicino)
+        for (i in 0 until count) {
+            val idx = ((head - count + i) % size + size) % size
+            val age = (count - 1 - i)  // 0 = più recente, count-1 = più vecchio
+            val ageT = age.toFloat() / count
+            val alpha = (1f - ageT) * 0.25f
+            if (alpha <= 0.01f) continue
+            tmp.set(Color.WHITE).also { it.a = alpha }
+            shapes.color = tmp
+            shapes.circle(trailX[idx], trailY[idx], r * (1f - ageT * 0.4f), 12)
+        }
+    }
+
+    /**
      * Capsule (paddle): doppio halo cyan + corpo a capsula + barra di highlight bianca interna.
      * Replica `box-shadow: 0 0 25px alpha 1, 0 0 50px alpha 0.5` + `bg-white/60` highlight.
      */

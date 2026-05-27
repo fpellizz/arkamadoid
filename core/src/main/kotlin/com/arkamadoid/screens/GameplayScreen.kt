@@ -68,6 +68,10 @@ class GameplayScreen(
     private val popupColor = Color()
     private var popupRemaining = 0f
 
+    private var shakeMagnitude = 0f
+    private var shakeRemaining = 0f
+    private var hitStopRemaining = 0f
+
     private val playFieldHeight = GameConfig.VIRTUAL_HEIGHT.toFloat()
     private val playFieldWidth = GameConfig.VIRTUAL_WIDTH.toFloat()
 
@@ -145,6 +149,11 @@ class GameplayScreen(
         }
         handleInput()
         if (disposed || state.paused) return
+        if (shakeRemaining > 0f) shakeRemaining -= delta
+        if (hitStopRemaining > 0f) {
+            hitStopRemaining -= delta
+            return
+        }
         accumulator += delta
         while (accumulator >= GameConfig.FIXED_STEP) {
             step(GameConfig.FIXED_STEP)
@@ -224,6 +233,7 @@ class GameplayScreen(
             }
             ball.x += ball.velocity.x * dt
             ball.y += ball.velocity.y * dt
+            ball.pushTrail()
 
             val wallHit = CollisionResolver.ballVsWalls(ball, playFieldWidth, playFieldHeight)
             if (wallHit == WallHit.BOTTOM) {
@@ -295,6 +305,7 @@ class GameplayScreen(
             brickColorOf(brick),
             count = 8,
         )
+        triggerImpact(brick.type == Brick.Type.EXPLOSIVE)
         if (Random.nextFloat() < GameConfig.POWERUP_DROP_CHANCE) {
             droppingPowerUps += PowerUp(
                 x = brick.x + brick.width / 2f - 8f,
@@ -346,6 +357,7 @@ class GameplayScreen(
     private fun applyPowerUp(type: PowerUpType) {
         game.audio.playSfx(AudioManager.Sfx.POWERUP)
         triggerPickupPopup(type)
+        haptic(HAPTIC_POWERUP_MS)
         when (type) {
             PowerUpType.EXPAND -> state.paddle.width = GameConfig.PADDLE_EXPAND_WIDTH.toFloat()
             PowerUpType.SLOW -> {
@@ -382,6 +394,7 @@ class GameplayScreen(
 
     private fun onBallLost() {
         game.audio.playSfx(AudioManager.Sfx.LIFE_LOST)
+        haptic(HAPTIC_LIFE_LOST_MS)
         if (mode == GameMode.PRACTICE) {
             positionPaddleAndBall()
             return
@@ -410,6 +423,41 @@ class GameplayScreen(
         }
         state.levelIndex = next
         loadLevel(next)
+    }
+
+    private fun applyShakeOffset() {
+        val cam = gameViewport.camera
+        val baseX = playFieldWidth / 2f
+        val baseY = playFieldHeight / 2f
+        if (shakeRemaining > 0f && shakeMagnitude > 0f) {
+            val t = (shakeRemaining / SHAKE_DURATION_HEAVY).coerceIn(0f, 1f)
+            val intensity = shakeMagnitude * t
+            val offX = (Random.nextFloat() * 2f - 1f) * intensity
+            val offY = (Random.nextFloat() * 2f - 1f) * intensity
+            cam.position.set(baseX + offX, baseY + offY, 0f)
+        } else {
+            cam.position.set(baseX, baseY, 0f)
+        }
+        cam.update()
+    }
+
+    private fun triggerImpact(explosive: Boolean) {
+        if (explosive) {
+            shakeMagnitude = SHAKE_INTENSITY_HEAVY
+            shakeRemaining = SHAKE_DURATION_HEAVY
+            hitStopRemaining = HIT_STOP_HEAVY
+            haptic(HAPTIC_HEAVY_MS)
+        } else {
+            shakeMagnitude = SHAKE_INTENSITY_LIGHT
+            shakeRemaining = SHAKE_DURATION_LIGHT
+            hitStopRemaining = HIT_STOP_LIGHT
+            haptic(HAPTIC_LIGHT_MS)
+        }
+    }
+
+    private fun haptic(ms: Int) {
+        if (!game.prefs.data.haptics) return
+        game.platform.vibrate(ms)
     }
 
     private fun brickColorOf(brick: Brick): Color =
@@ -465,6 +513,7 @@ class GameplayScreen(
 
         // === GAME VIEWPORT ===
         gameViewport.apply()
+        applyShakeOffset()
         shapes.projectionMatrix = gameViewport.camera.combined
 
         PlayfieldRenderer.gridBackground(shapes, playFieldWidth, playFieldHeight, 16f)
@@ -502,8 +551,11 @@ class GameplayScreen(
             PlayfieldRenderer.glowRect(shapes, bolt.x - LaserBolt.WIDTH / 2f, bolt.y, LaserBolt.WIDTH, LaserBolt.HEIGHT, Theme.Palette.ERROR)
         }
 
-        // balls (bianche con alone magenta)
-        for (ball in state.balls) PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
+        // balls (bianche con alone magenta) + trail
+        for (ball in state.balls) {
+            PlayfieldRenderer.ballTrail(shapes, ball.trailX, ball.trailY, ball.trailHead, ball.trailCount, ball.radius)
+            PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
+        }
 
         shapes.end()
 
@@ -632,5 +684,16 @@ class GameplayScreen(
         const val PADDLE_Y = 18f
         const val POPUP_LIFETIME = 0.45f
         const val LASER_COOLDOWN = 0.20f
+
+        const val SHAKE_INTENSITY_LIGHT = 1.5f
+        const val SHAKE_INTENSITY_HEAVY = 4f
+        const val SHAKE_DURATION_LIGHT = 0.12f
+        const val SHAKE_DURATION_HEAVY = 0.22f
+        const val HIT_STOP_LIGHT = 0.025f
+        const val HIT_STOP_HEAVY = 0.06f
+        const val HAPTIC_LIGHT_MS = 12
+        const val HAPTIC_HEAVY_MS = 40
+        const val HAPTIC_LIFE_LOST_MS = 90
+        const val HAPTIC_POWERUP_MS = 18
     }
 }

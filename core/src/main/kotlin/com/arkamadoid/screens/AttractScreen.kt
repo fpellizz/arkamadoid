@@ -84,6 +84,7 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
             val ball = iter.next()
             ball.x += ball.velocity.x * dt
             ball.y += ball.velocity.y * dt
+            ball.pushTrail()
 
             val wh = CollisionResolver.ballVsWalls(ball, playFieldW, playFieldH)
             if (wh == CollisionResolver.WallHit.BOTTOM) {
@@ -141,7 +142,10 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
         val p = demoState.paddle
         PlayfieldRenderer.capsule(shapes, p.x, p.y, p.width, p.height, Theme.Palette.SECONDARY_CONTAINER)
 
-        for (ball in demoState.balls) PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
+        for (ball in demoState.balls) {
+            PlayfieldRenderer.ballTrail(shapes, ball.trailX, ball.trailY, ball.trailHead, ball.trailCount, ball.radius)
+            PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
+        }
 
         shapes.end()
 
