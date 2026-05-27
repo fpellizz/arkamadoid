@@ -8,6 +8,7 @@ class Brick(
     val width: Float,
     val height: Float,
     val type: Type,
+    val colorIndex: Int = 0,
 ) {
     var hp: Int = type.hp
     val alive: Boolean get() = hp > 0

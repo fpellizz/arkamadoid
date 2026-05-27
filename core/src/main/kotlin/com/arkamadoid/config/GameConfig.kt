@@ -10,9 +10,9 @@ object GameConfig {
     const val START_LIVES = 3
     const val EXTRA_LIFE_EVERY = 20_000
 
-    const val BALL_INITIAL_SPEED = 90f
-    const val BALL_SPEED_INCREMENT_PER_LEVEL = 8f
-    const val BALL_MAX_SPEED = 220f
+    const val BALL_INITIAL_SPEED = 180f
+    const val BALL_SPEED_INCREMENT_PER_LEVEL = 12f
+    const val BALL_MAX_SPEED = 320f
 
     const val PADDLE_BASE_WIDTH = 36
     const val PADDLE_EXPAND_WIDTH = 52

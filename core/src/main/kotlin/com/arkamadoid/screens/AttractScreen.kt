@@ -90,9 +90,7 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
         batch.end()
 
         if (Gdx.input.justTouched() && elapsed > 0.5f) {
-            // MainMenuScreen è ancora vuoto: per ora ricaricare attract.
-            // Quando MainMenu sarà pronto: game.setScreen(MainMenuScreen(game))
-            elapsed = 0f
+            game.setScreen(GameplayScreen(game, GameplayScreen.GameMode.ARCADE))
         }
     }
 

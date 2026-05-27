@@ -1,6 +1,6 @@
 {
   "name": "ROUND 1",
-  "ballSpeed": 90,
+  "ballSpeed": 180,
   "grid": {
     "cols": 13,
     "rows": 6,
