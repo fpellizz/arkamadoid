@@ -89,6 +89,8 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
         batch.end()
 
+        com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)
+
         if (Gdx.input.justTouched() && elapsed > 0.5f) {
             game.setScreen(MainMenuScreen(game))
         }

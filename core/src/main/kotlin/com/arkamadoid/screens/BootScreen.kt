@@ -112,6 +112,8 @@ class BootScreen(game: ArkamadoidGame) : BaseScreen(game) {
         shapes.rect(60f, 90f, VIRTUAL_W - 120f, 24f)
         shapes.end()
 
+        com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)
+
         if (elapsed >= totalDuration + 0.5f) {
             game.setScreen(AttractScreen(game))
         }

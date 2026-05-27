@@ -79,6 +79,8 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
         foot.draw(batch, layout, (VIRTUAL_W - layout.width) / 2f, 40f)
         batch.end()
 
+        com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)
+
         if (Gdx.input.justTouched() && elapsed > 0.15f) {
             tmp.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat(), 0f)
             viewport.unproject(tmp)

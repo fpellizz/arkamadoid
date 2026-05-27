@@ -83,6 +83,8 @@ class ModeSelectScreen(game: ArkamadoidGame) : BaseScreen(game) {
         backFont.draw(batch, "< BACK", backRect.x + (backRect.width - layout.width) / 2f, backRect.y + backRect.height / 2f + layout.height / 2f)
         batch.end()
 
+        com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)
+
         if (Gdx.input.justTouched() && elapsed > 0.15f) {
             tmp.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat(), 0f)
             viewport.unproject(tmp)

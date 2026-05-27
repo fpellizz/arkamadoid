@@ -60,6 +60,8 @@ class PauseScreen(
         btnFont.draw(batch, "QUIT", quitRect.x + (quitRect.width - layout.width) / 2f, quitRect.y + quitRect.height / 2f + layout.height / 2f)
         batch.end()
 
+        com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)
+
         if (Gdx.input.justTouched() && elapsed > 0.2f) {
             tmpVec.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat(), 0f)
             viewport.unproject(tmpVec)
