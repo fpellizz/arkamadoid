@@ -55,7 +55,7 @@ class GameOverScreen(
         batch.end()
 
         if (Gdx.input.justTouched() && elapsed > 1.2f) {
-            game.setScreen(AttractScreen(game))
+            game.setScreen(MainMenuScreen(game))
         }
     }
 

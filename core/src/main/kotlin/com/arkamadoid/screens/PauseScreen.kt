@@ -69,7 +69,7 @@ class PauseScreen(
                 }
                 quitRect.contains(tmpVec.x, tmpVec.y) -> {
                     gameplay.dispose()
-                    game.setScreen(AttractScreen(game))
+                    game.setScreen(MainMenuScreen(game))
                 }
             }
         }

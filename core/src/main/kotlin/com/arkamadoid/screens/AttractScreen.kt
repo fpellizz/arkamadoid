@@ -90,7 +90,7 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
         batch.end()
 
         if (Gdx.input.justTouched() && elapsed > 0.5f) {
-            game.setScreen(GameplayScreen(game, GameplayScreen.GameMode.ARCADE))
+            game.setScreen(MainMenuScreen(game))
         }
     }
 
