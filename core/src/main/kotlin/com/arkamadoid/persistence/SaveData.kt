@@ -15,5 +15,9 @@ data class SaveData(
     var haptics: Boolean = true,
     var language: String = "it",
 ) {
-    data class HighScoreEntry(val initials: String, val score: Int, val level: Int)
+    data class HighScoreEntry(
+        val initials: String = "AAA",
+        val score: Int = 0,
+        val level: Int = 1,
+    )
 }

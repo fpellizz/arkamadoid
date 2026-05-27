@@ -1,19 +1,49 @@
 package com.arkamadoid.persistence
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.utils.Json
+import com.badlogic.gdx.utils.JsonWriter
 
 class PreferencesStore {
     private val prefs = Gdx.app.getPreferences("arkamadoid")
+    private val json = Json().apply {
+        ignoreUnknownFields = true
+        setOutputType(JsonWriter.OutputType.json)
+    }
 
     var data: SaveData = load()
+        private set
 
     private fun load(): SaveData {
-        // TODO: deserialize from prefs (JSON blob) into SaveData
-        return SaveData()
+        val raw = prefs.getString(KEY, "")
+        if (raw.isEmpty()) return SaveData()
+        return try {
+            json.fromJson(SaveData::class.java, raw)
+        } catch (e: Throwable) {
+            Gdx.app.error("PreferencesStore", "deserialize failed: ${e.message}")
+            SaveData()
+        }
     }
 
     fun save() {
-        // TODO: serialize SaveData and flush
+        prefs.putString(KEY, json.toJson(data, SaveData::class.java))
         prefs.flush()
+    }
+
+    /** Inserisce uno score nella top-N, ritorna il rank 1-based (0 = fuori top). */
+    fun submitScore(initials: String, score: Int, level: Int, top: Int = 10): Int {
+        val entry = SaveData.HighScoreEntry(initials, score, level)
+        data.highScores.add(entry)
+        data.highScores.sortByDescending { it.score }
+        if (data.highScores.size > top) {
+            data.highScores.subList(top, data.highScores.size).clear()
+        }
+        save()
+        val idx = data.highScores.indexOf(entry)
+        return if (idx >= 0) idx + 1 else 0
+    }
+
+    companion object {
+        const val KEY = "save"
     }
 }
