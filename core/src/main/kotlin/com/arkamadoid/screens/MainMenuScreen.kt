@@ -2,6 +2,7 @@ package com.arkamadoid.screens
 
 import com.arkamadoid.ArkamadoidGame
 import com.arkamadoid.audio.MusicTrack
+import com.arkamadoid.config.GameConfig
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -21,6 +22,7 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
     private val layout = GlyphLayout()
     private val tmp = Vector3()
     private var elapsed = 0f
+    private var idleTime = 0f
 
     private val items = listOf(
         Item("PLAY", Theme.Palette.PRIMARY_CONTAINER) { game.setScreen(ModeSelectScreen(game)) },
@@ -43,6 +45,11 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
     override fun render(delta: Float) {
         elapsed += delta
+        idleTime += delta
+        if (idleTime > GameConfig.ATTRACT_TIMEOUT_SECONDS) {
+            game.setScreen(AttractScreen(game))
+            return
+        }
 
         Gdx.gl.glClearColor(0.054f, 0.054f, 0.078f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -82,6 +89,7 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
         com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)
 
         if (Gdx.input.justTouched() && elapsed > 0.15f) {
+            idleTime = 0f
             tmp.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat(), 0f)
             viewport.unproject(tmp)
             for (i in items.indices) {

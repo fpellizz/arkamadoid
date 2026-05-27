@@ -1,66 +1,206 @@
 package com.arkamadoid.screens
 
 import com.arkamadoid.ArkamadoidGame
+import com.arkamadoid.config.GameConfig
+import com.arkamadoid.entities.Ball
+import com.arkamadoid.gameplay.CollisionResolver
+import com.arkamadoid.gameplay.GameState
+import com.arkamadoid.gameplay.LevelLoader
+import com.arkamadoid.render.HudCardSide
+import com.arkamadoid.render.PixelViewport
+import com.arkamadoid.render.PlayfieldRenderer
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.utils.viewport.FitViewport
-import kotlin.math.sin
 
 class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
     private val batch = SpriteBatch()
     private val shapes = ShapeRenderer()
     private val viewport = FitViewport(VIRTUAL_W, VIRTUAL_H)
+    private val gameViewport = PixelViewport()
     private val layout = GlyphLayout()
     private var elapsed = 0f
-    private val logo: Texture = Texture(Gdx.files.internal("sprites/logo.png")).apply {
-        setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear)
+
+    private val demoState = GameState()
+    private var demoAccumulator = 0f
+    private val playFieldW = GameConfig.VIRTUAL_WIDTH.toFloat()
+    private val playFieldH = GameConfig.VIRTUAL_HEIGHT.toFloat()
+    private val damagedTint = Color()
+
+    // HUD card layout: identico a GameplayScreen
+    private val scoreCardRect = Rectangle(40f, VIRTUAL_H - 200f, 220f, 130f)
+    private val sectorCardRect = Rectangle((VIRTUAL_W - 200f) / 2f, VIRTUAL_H - 200f, 200f, 130f)
+    private val integrityCardRect = Rectangle(VIRTUAL_W - 260f, VIRTUAL_H - 200f, 220f, 130f)
+
+    private val brickPalette = arrayOf(
+        Theme.Palette.SECONDARY_FIXED_DIM,
+        Theme.Palette.PRIMARY_CONTAINER,
+        Theme.Palette.TERTIARY,
+        Theme.Palette.SECONDARY_FIXED,
+        Theme.Palette.PRIMARY_FIXED,
+        Theme.Palette.ERROR,
+    )
+
+    init {
+        loadDemoLevel()
+    }
+
+    private fun loadDemoLevel() {
+        demoState.currentLevel = LevelLoader.load(1)
+        val p = demoState.paddle
+        p.width = GameConfig.PADDLE_BASE_WIDTH.toFloat()
+        p.x = (playFieldW - p.width) / 2f
+        p.y = 18f
+        demoState.balls.clear()
+        val b = Ball()
+        b.speed = 180f
+        b.x = p.x + p.width / 2f
+        b.y = p.y + p.height + b.radius + 1f
+        b.stuckToPaddle = false
+        b.setDirectionDeg(-30f)
+        demoState.balls += b
+    }
+
+    private fun stepDemo(dt: Float) {
+        val level = demoState.currentLevel ?: return
+        val p = demoState.paddle
+
+        val target = demoState.balls.firstOrNull()
+        if (target != null) {
+            val desiredX = target.x - p.width / 2f
+            p.x += (desiredX - p.x) * 0.18f
+            p.x = p.x.coerceIn(0f, playFieldW - p.width)
+        }
+
+        val iter = demoState.balls.iterator()
+        while (iter.hasNext()) {
+            val ball = iter.next()
+            ball.x += ball.velocity.x * dt
+            ball.y += ball.velocity.y * dt
+
+            val wh = CollisionResolver.ballVsWalls(ball, playFieldW, playFieldH)
+            if (wh == CollisionResolver.WallHit.BOTTOM) {
+                iter.remove()
+                continue
+            }
+            CollisionResolver.ballVsPaddle(ball, p)
+            for (brick in level.bricks) {
+                if (!brick.alive) continue
+                if (CollisionResolver.ballVsBrick(ball, brick)) break
+            }
+        }
+
+        if (demoState.balls.isEmpty() || level.isComplete) {
+            loadDemoLevel()
+        }
     }
 
     override fun render(delta: Float) {
         elapsed += delta
 
+        demoAccumulator += delta.coerceAtMost(1f / 30f)
+        while (demoAccumulator >= GameConfig.FIXED_STEP) {
+            stepDemo(GameConfig.FIXED_STEP)
+            demoAccumulator -= GameConfig.FIXED_STEP
+        }
+
         Gdx.gl.glClearColor(0.054f, 0.054f, 0.078f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
 
-        viewport.apply()
-        batch.projectionMatrix = viewport.camera.combined
-        shapes.projectionMatrix = viewport.camera.combined
+        Gdx.gl.glEnable(GL20.GL_BLEND)
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
 
-        // griglia di sfondo neon (drawn first)
-        shapes.begin(ShapeRenderer.ShapeType.Line)
-        shapes.color = Theme.Palette.PRIMARY_FIXED_DIM.apply { a = 0.08f }
-        val gridStep = 40f
-        var x = 0f
-        while (x < VIRTUAL_W) {
-            shapes.line(x, 0f, x, VIRTUAL_H)
-            x += gridStep
+        // === DEMO GAMEPLAY (pixel viewport, identico al gameplay reale) ===
+        gameViewport.apply()
+        shapes.projectionMatrix = gameViewport.camera.combined
+
+        PlayfieldRenderer.gridBackground(shapes, playFieldW, playFieldH, 16f)
+
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+
+        demoState.currentLevel?.bricks?.forEach { brick ->
+            if (!brick.alive) return@forEach
+            val base = brickPalette[brick.colorIndex % brickPalette.size]
+            val col = if (brick.hp < brick.type.hp) damagedTint.set(base).lerp(Color.WHITE, 0.35f) else base
+            PlayfieldRenderer.glowRect(
+                shapes,
+                brick.x + 2f, brick.y + 1.5f,
+                brick.width - 4f, brick.height - 3f,
+                col,
+                cornerRadius = 1f,
+            )
         }
-        var y = 0f
-        while (y < VIRTUAL_H) {
-            shapes.line(0f, y, VIRTUAL_W, y)
-            y += gridStep
-        }
+
+        val p = demoState.paddle
+        PlayfieldRenderer.capsule(shapes, p.x, p.y, p.width, p.height, Theme.Palette.SECONDARY_CONTAINER)
+
+        for (ball in demoState.balls) PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
+
         shapes.end()
-        Theme.Palette.PRIMARY_FIXED_DIM.a = 1f
 
+        // === HUD card (uguale al gameplay reale) ===
+        viewport.apply()
+        shapes.projectionMatrix = viewport.camera.combined
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+
+        PlayfieldRenderer.hudCard(shapes, scoreCardRect, Theme.Palette.TERTIARY, HudCardSide.LEFT)
+        PlayfieldRenderer.hudCard(shapes, sectorCardRect, Theme.Palette.PRIMARY_CONTAINER, HudCardSide.BOTTOM)
+        PlayfieldRenderer.hudCard(shapes, integrityCardRect, Theme.Palette.SECONDARY_FIXED_DIM, HudCardSide.RIGHT)
+
+        // 3 vite glow nella card INTEGRITY
+        val sizeL = 22f
+        val gap = 10f
+        val livesShown = 3
+        val totalW = livesShown * sizeL + (livesShown - 1) * gap
+        val startX = integrityCardRect.x + integrityCardRect.width - 20f - totalW
+        val ly = integrityCardRect.y + 32f
+        for (i in 0 until livesShown) {
+            PlayfieldRenderer.glowRect(shapes, startX + i * (sizeL + gap), ly, sizeL, sizeL, Theme.Palette.SECONDARY_FIXED_DIM)
+        }
+
+        shapes.end()
+
+        // === Testi HUD + overlay attract ===
+        batch.projectionMatrix = viewport.camera.combined
         batch.begin()
 
-        // LOGO ARKAMADOID centrale, con pulsazione leggera
-        val pulse = 1f + 0.04f * sin(elapsed * 2f)
-        val baseSize = 480f
-        val w = baseSize * pulse
-        val h = baseSize * pulse
-        val cx = VIRTUAL_W / 2f
-        val cy = 880f
-        batch.draw(logo, cx - w / 2f, cy - h / 2f, w, h)
+        val labelFont = game.fonts[Theme.FontSize.LABEL_SM, true]
+        val valueFont = game.fonts[Theme.FontSize.HEADLINE, true]
 
-        // INSERT COIN - blink 1.5 Hz
+        labelFont.color = Theme.Palette.TERTIARY
+        labelFont.draw(batch, "DATA_STORE", scoreCardRect.x + 18f, scoreCardRect.y + scoreCardRect.height - 20f)
+        valueFont.color = Theme.Palette.TERTIARY
+        valueFont.draw(batch, "%07d".format(0), scoreCardRect.x + 18f, scoreCardRect.y + 50f)
+
+        labelFont.color = Theme.Palette.PRIMARY_CONTAINER
+        val sectorLabel = "SECTOR"
+        layout.setText(labelFont, sectorLabel)
+        labelFont.draw(batch, sectorLabel, sectorCardRect.x + (sectorCardRect.width - layout.width) / 2f, sectorCardRect.y + sectorCardRect.height - 20f)
+        valueFont.color = Theme.Palette.PRIMARY_CONTAINER
+        val sectorVal = "01"
+        layout.setText(valueFont, sectorVal)
+        valueFont.draw(batch, sectorVal, sectorCardRect.x + (sectorCardRect.width - layout.width) / 2f, sectorCardRect.y + 50f)
+
+        labelFont.color = Theme.Palette.SECONDARY_FIXED_DIM
+        val intLabel = "INTEGRITY"
+        layout.setText(labelFont, intLabel)
+        labelFont.draw(batch, intLabel, integrityCardRect.x + integrityCardRect.width - 18f - layout.width, integrityCardRect.y + integrityCardRect.height - 20f)
+
+        // footer hint identico al gameplay
+        val hintFont = game.fonts[Theme.FontSize.LABEL_SM, true]
+        hintFont.color = Theme.Palette.SECONDARY_FIXED_DIM
+        val hint = "SENSORS ACTIVE   SLIDE TO STEER"
+        layout.setText(hintFont, hint)
+        hintFont.draw(batch, hint, (VIRTUAL_W - layout.width) / 2f, 80f)
+
+        // INSERT COIN blink 1.5 Hz
         val blink = (elapsed * 1.5f).toInt() % 2 == 0
         if (blink) {
             val coinFont = game.fonts[Theme.FontSize.HEADLINE, true]
@@ -69,29 +209,14 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
             coinFont.draw(batch, "INSERT COIN", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 80f)
         }
 
-        // PRESS START (sempre visibile, leggermente più piccolo)
+        // TAP TO START sotto
         val pressFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
         pressFont.color = Theme.Palette.SECONDARY_CONTAINER
         layout.setText(pressFont, "TAP TO START")
         pressFont.draw(batch, "TAP TO START", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 160f)
 
-        // High score banner placeholder (in stile mockup)
-        val hsLabel = game.fonts[Theme.FontSize.LABEL_SM, true]
-        hsLabel.color = Theme.Palette.SECONDARY_FIXED_DIM
-        hsLabel.draw(batch, "HI-SCORE  005000", 60f, VIRTUAL_H - 60f)
-
-        val onepLabel = game.fonts[Theme.FontSize.LABEL_SM, true]
-        onepLabel.color = Theme.Palette.PRIMARY
-        layout.setText(onepLabel, "1P SCORE  000000")
-        onepLabel.draw(batch, layout, VIRTUAL_W - 60f - layout.width, VIRTUAL_H - 60f)
-
-        // footer copyright
-        val footFont = game.fonts[Theme.FontSize.LABEL_SM]
-        footFont.color = Theme.Palette.ON_SURFACE_VARIANT
-        layout.setText(footFont, "v0.1.0  -  (C) 2026 ARKAMADOID INDUSTRIES")
-        footFont.draw(batch, layout, (VIRTUAL_W - layout.width) / 2f, 40f)
-
         batch.end()
+        Gdx.gl.glDisable(GL20.GL_BLEND)
 
         com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)
 
@@ -102,6 +227,7 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height, true)
+        gameViewport.update(width, height, true)
     }
 
     override fun hide() {
@@ -111,7 +237,6 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
     override fun dispose() {
         batch.dispose()
         shapes.dispose()
-        logo.dispose()
     }
 
     companion object {

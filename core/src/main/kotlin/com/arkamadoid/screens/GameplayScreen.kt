@@ -15,8 +15,10 @@ import com.arkamadoid.gameplay.Level
 import com.arkamadoid.gameplay.LevelLoader
 import com.arkamadoid.input.TouchController
 import com.arkamadoid.powerups.PowerUpType
+import com.arkamadoid.render.HudCardSide
 import com.arkamadoid.render.ParticleSystem
 import com.arkamadoid.render.PixelViewport
+import com.arkamadoid.render.PlayfieldRenderer
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
@@ -57,8 +59,6 @@ class GameplayScreen(
     private val sectorCardRect = Rectangle((UI_W - 200f) / 2f, UI_H - 200f, 200f, 130f)
     private val integrityCardRect = Rectangle(UI_W - 260f, UI_H - 200f, 220f, 130f)
     private val skipSectorRect = Rectangle(sectorCardRect.x, sectorCardRect.y, sectorCardRect.width, sectorCardRect.height)
-
-    private enum class HudCardSide { LEFT, RIGHT, TOP, BOTTOM }
 
     private var disposed = false
     private var disposeOnHide = false
@@ -360,7 +360,7 @@ class GameplayScreen(
             PowerUpType.LIFE -> state.lives += 1
             PowerUpType.LASER -> state.paddle.hasLaser = true
             PowerUpType.CATCH -> state.paddle.hasCatch = true
-            PowerUpType.WARP -> Unit
+            PowerUpType.WARP -> onLevelComplete()
         }
     }
 
@@ -456,63 +456,6 @@ class GameplayScreen(
         PowerUpType.WARP -> Theme.Palette.PRIMARY_FIXED
     }
 
-    private fun drawGlowRect(x: Float, y: Float, w: Float, h: Float, color: Color) {
-        tmpColor.set(color).also { it.a = 0.10f }
-        shapes.color = tmpColor
-        shapes.rect(x - 2f, y - 2f, w + 4f, h + 4f)
-        tmpColor.set(color).also { it.a = 0.28f }
-        shapes.color = tmpColor
-        shapes.rect(x - 1f, y - 1f, w + 2f, h + 2f)
-        shapes.color = color
-        shapes.rect(x, y, w, h)
-    }
-
-    private fun drawGlowBall(cx: Float, cy: Float, r: Float) {
-        tmpColor.set(Theme.Palette.PRIMARY_CONTAINER).also { it.a = 0.10f }
-        shapes.color = tmpColor
-        shapes.circle(cx, cy, r * 3f, 16)
-        tmpColor.set(Theme.Palette.PRIMARY_CONTAINER).also { it.a = 0.28f }
-        shapes.color = tmpColor
-        shapes.circle(cx, cy, r * 2f, 14)
-        shapes.color = Color.WHITE
-        shapes.circle(cx, cy, r, 12)
-    }
-
-    private fun drawCapsule(x: Float, y: Float, w: Float, h: Float, color: Color) {
-        val rad = h / 2f
-        // glow halo
-        tmpColor.set(color).also { it.a = 0.10f }
-        shapes.color = tmpColor
-        shapes.rect(x - 2f, y - 2f, w + 4f, h + 4f)
-        tmpColor.set(color).also { it.a = 0.28f }
-        shapes.color = tmpColor
-        shapes.rect(x - 1f, y - 1f, w + 2f, h + 2f)
-        // capsule body
-        shapes.color = color
-        shapes.circle(x + rad, y + rad, rad, 12)
-        shapes.circle(x + w - rad, y + rad, rad, 12)
-        shapes.rect(x + rad, y, w - 2f * rad, h)
-        // inner highlight bar
-        tmpColor.set(Color.WHITE).also { it.a = 0.6f }
-        shapes.color = tmpColor
-        val inset = w * 0.08f
-        shapes.rect(x + inset, y + h * 0.4f, w - 2f * inset, h * 0.25f)
-    }
-
-    private fun drawHudCard(r: Rectangle, borderColor: Color, side: HudCardSide) {
-        tmpColor.set(Theme.Palette.SURFACE_CONTAINER_LOW).also { it.a = 0.7f }
-        shapes.color = tmpColor
-        shapes.rect(r.x, r.y, r.width, r.height)
-        shapes.color = borderColor
-        val t = 5f
-        when (side) {
-            HudCardSide.LEFT -> shapes.rect(r.x, r.y, t, r.height)
-            HudCardSide.RIGHT -> shapes.rect(r.x + r.width - t, r.y, t, r.height)
-            HudCardSide.BOTTOM -> shapes.rect(r.x, r.y, r.width, t)
-            HudCardSide.TOP -> shapes.rect(r.x, r.y + r.height - t, r.width, t)
-        }
-    }
-
     private fun draw() {
         Gdx.gl.glClearColor(0.054f, 0.054f, 0.078f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -524,15 +467,7 @@ class GameplayScreen(
         gameViewport.apply()
         shapes.projectionMatrix = gameViewport.camera.combined
 
-        // background grid (sottilissimo neon pink)
-        shapes.begin(ShapeRenderer.ShapeType.Line)
-        tmpColor.set(Theme.Palette.PRIMARY_FIXED).also { it.a = 0.14f }
-        shapes.color = tmpColor
-        var gx = 0f
-        while (gx <= playFieldWidth) { shapes.line(gx, 0f, gx, playFieldHeight); gx += 16f }
-        var gy = 0f
-        while (gy <= playFieldHeight) { shapes.line(0f, gy, playFieldWidth, gy); gy += 16f }
-        shapes.end()
+        PlayfieldRenderer.gridBackground(shapes, playFieldWidth, playFieldHeight, 16f)
 
         shapes.begin(ShapeRenderer.ShapeType.Filled)
 
@@ -541,12 +476,12 @@ class GameplayScreen(
             if (!brick.alive) return@forEach
             val base = brickColorOf(brick)
             val col = if (brick.hp < brick.type.hp) damagedTint.set(base).lerp(Color.WHITE, 0.35f) else base
-            drawGlowRect(brick.x + 0.5f, brick.y + 0.5f, brick.width - 1f, brick.height - 1f, col)
+            PlayfieldRenderer.glowRect(shapes, brick.x + 2f, brick.y + 1.5f, brick.width - 4f, brick.height - 3f, col, cornerRadius = 1f)
         }
 
         // power-up drops (con glow)
         for (pu in droppingPowerUps) {
-            drawGlowRect(pu.x, pu.y, 16f, 8f, powerUpColor(pu.type))
+            PlayfieldRenderer.glowRect(shapes, pu.x, pu.y, 16f, 8f, powerUpColor(pu.type))
         }
 
         // particles
@@ -554,21 +489,21 @@ class GameplayScreen(
 
         // paddle (capsule cyan con inner highlight)
         val p = state.paddle
-        drawCapsule(p.x, p.y, p.width, p.height, Theme.Palette.SECONDARY_CONTAINER)
+        PlayfieldRenderer.capsule(shapes, p.x, p.y, p.width, p.height, Theme.Palette.SECONDARY_CONTAINER)
 
         // cannoni laser sui lati del paddle se hasLaser è attivo
         if (p.hasLaser) {
-            drawGlowRect(p.x + 2f, p.y + p.height, 2f, 3f, Theme.Palette.ERROR)
-            drawGlowRect(p.x + p.width - 4f, p.y + p.height, 2f, 3f, Theme.Palette.ERROR)
+            PlayfieldRenderer.glowRect(shapes, p.x + 2f, p.y + p.height, 2f, 3f, Theme.Palette.ERROR)
+            PlayfieldRenderer.glowRect(shapes, p.x + p.width - 4f, p.y + p.height, 2f, 3f, Theme.Palette.ERROR)
         }
 
         // laser bolts in volo
         for (bolt in laserBolts) {
-            drawGlowRect(bolt.x - LaserBolt.WIDTH / 2f, bolt.y, LaserBolt.WIDTH, LaserBolt.HEIGHT, Theme.Palette.ERROR)
+            PlayfieldRenderer.glowRect(shapes, bolt.x - LaserBolt.WIDTH / 2f, bolt.y, LaserBolt.WIDTH, LaserBolt.HEIGHT, Theme.Palette.ERROR)
         }
 
         // balls (bianche con alone magenta)
-        for (ball in state.balls) drawGlowBall(ball.x, ball.y, ball.radius)
+        for (ball in state.balls) PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
 
         shapes.end()
 
@@ -578,9 +513,9 @@ class GameplayScreen(
         shapes.begin(ShapeRenderer.ShapeType.Filled)
 
         // HUD cards
-        drawHudCard(scoreCardRect, Theme.Palette.TERTIARY, HudCardSide.LEFT)
-        drawHudCard(sectorCardRect, Theme.Palette.PRIMARY_CONTAINER, HudCardSide.BOTTOM)
-        drawHudCard(integrityCardRect, Theme.Palette.SECONDARY_FIXED_DIM, HudCardSide.RIGHT)
+        PlayfieldRenderer.hudCard(shapes,scoreCardRect, Theme.Palette.TERTIARY, HudCardSide.LEFT)
+        PlayfieldRenderer.hudCard(shapes,sectorCardRect, Theme.Palette.PRIMARY_CONTAINER, HudCardSide.BOTTOM)
+        PlayfieldRenderer.hudCard(shapes,integrityCardRect, Theme.Palette.SECONDARY_FIXED_DIM, HudCardSide.RIGHT)
 
         // vite (quadrati cyan con glow), o niente se PRACTICE (mostro INF dopo come testo)
         if (mode != GameMode.PRACTICE) {
@@ -591,7 +526,7 @@ class GameplayScreen(
             val startX = integrityCardRect.x + integrityCardRect.width - 20f - totalW
             val ly = integrityCardRect.y + 32f
             for (i in 0 until livesShown) {
-                drawGlowRect(startX + i * (sizeL + gap), ly, sizeL, sizeL, Theme.Palette.SECONDARY_FIXED_DIM)
+                PlayfieldRenderer.glowRect(shapes, startX + i * (sizeL + gap), ly, sizeL, sizeL, Theme.Palette.SECONDARY_FIXED_DIM)
             }
         }
 
