@@ -6,6 +6,7 @@ import com.arkamadoid.audio.MusicTrack
 import com.arkamadoid.config.GameConfig
 import com.arkamadoid.entities.Ball
 import com.arkamadoid.entities.Brick
+import com.arkamadoid.entities.LaserBolt
 import com.arkamadoid.entities.PowerUp
 import com.arkamadoid.gameplay.CollisionResolver
 import com.arkamadoid.gameplay.CollisionResolver.WallHit
@@ -44,6 +45,8 @@ class GameplayScreen(
     private val touch = TouchController()
     private val particles = ParticleSystem()
     private val droppingPowerUps = mutableListOf<PowerUp>()
+    private val laserBolts = mutableListOf<LaserBolt>()
+    private var laserCooldown = 0f
 
     private val unprojectTmp = Vector3()
     private val tmpUi = Vector3()
@@ -115,6 +118,8 @@ class GameplayScreen(
 
         state.balls.clear()
         droppingPowerUps.clear()
+        laserBolts.clear()
+        laserCooldown = 0f
         particles.clear()
 
         val b = Ball()
@@ -191,6 +196,20 @@ class GameplayScreen(
                 }
             }
         }
+
+        fireLaserIfReady()
+    }
+
+    private fun fireLaserIfReady() {
+        if (!state.paddle.hasLaser) return
+        if (laserCooldown > 0f) return
+        if (state.balls.any { it.stuckToPaddle }) return
+        val p = state.paddle
+        val topY = p.y + p.height + 1f
+        laserBolts += LaserBolt(p.x + 3f, topY)
+        laserBolts += LaserBolt(p.x + p.width - 3f, topY)
+        laserCooldown = LASER_COOLDOWN
+        game.audio.playSfx(AudioManager.Sfx.BOUNCE, pitch = 2.0f)
     }
 
     private fun step(dt: Float) {
@@ -215,6 +234,11 @@ class GameplayScreen(
 
             if (CollisionResolver.ballVsPaddle(ball, state.paddle)) {
                 game.audio.playSfx(AudioManager.Sfx.BOUNCE)
+                if (state.paddle.hasCatch) {
+                    ball.velocity.set(0f, 0f)
+                    ball.stuckToPaddle = true
+                    ball.y = state.paddle.y + state.paddle.height + ball.radius + 1f
+                }
             }
 
             for (brick in level.bricks) {
@@ -233,8 +257,34 @@ class GameplayScreen(
         }
 
         updatePowerUps(dt)
+        updateLaserBolts(dt)
 
         if (level.isComplete) onLevelComplete()
+    }
+
+    private fun updateLaserBolts(dt: Float) {
+        if (laserCooldown > 0f) laserCooldown -= dt
+        val level = state.currentLevel ?: return
+        val it = laserBolts.iterator()
+        while (it.hasNext()) {
+            val bolt = it.next()
+            bolt.y += LaserBolt.SPEED * dt
+            if (bolt.y > playFieldHeight) { it.remove(); continue }
+            val r = bolt.bounds
+            var hit = false
+            for (brick in level.bricks) {
+                if (!brick.alive) continue
+                if (!brick.bounds.overlaps(r)) continue
+                if (brick.type != Brick.Type.INDESTRUCTIBLE) {
+                    brick.hp -= 1
+                    if (!brick.alive) onBrickDestroyed(brick, level)
+                    game.audio.playSfx(AudioManager.Sfx.BRICK, pitch = 1.4f)
+                }
+                hit = true
+                break
+            }
+            if (hit) it.remove()
+        }
     }
 
     private fun onBrickDestroyed(brick: Brick, level: Level) {
@@ -506,6 +556,17 @@ class GameplayScreen(
         val p = state.paddle
         drawCapsule(p.x, p.y, p.width, p.height, Theme.Palette.SECONDARY_CONTAINER)
 
+        // cannoni laser sui lati del paddle se hasLaser è attivo
+        if (p.hasLaser) {
+            drawGlowRect(p.x + 2f, p.y + p.height, 2f, 3f, Theme.Palette.ERROR)
+            drawGlowRect(p.x + p.width - 4f, p.y + p.height, 2f, 3f, Theme.Palette.ERROR)
+        }
+
+        // laser bolts in volo
+        for (bolt in laserBolts) {
+            drawGlowRect(bolt.x - LaserBolt.WIDTH / 2f, bolt.y, LaserBolt.WIDTH, LaserBolt.HEIGHT, Theme.Palette.ERROR)
+        }
+
         // balls (bianche con alone magenta)
         for (ball in state.balls) drawGlowBall(ball.x, ball.y, ball.radius)
 
@@ -635,5 +696,6 @@ class GameplayScreen(
         const val UI_H = 1280f
         const val PADDLE_Y = 18f
         const val POPUP_LIFETIME = 0.45f
+        const val LASER_COOLDOWN = 0.20f
     }
 }
