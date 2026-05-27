@@ -1,0 +1,31 @@
+{
+  "name": "SECTOR 04",
+  "ballSpeed": 225,
+  "grid": {
+    "cols": 13,
+    "rows": 8,
+    "cellWidth": 16,
+    "cellHeight": 8,
+    "originX": 16,
+    "originY": 256
+  },
+  "rows": [
+    "RYGYGYGYGYGYR",
+    "Y...........Y",
+    "G.NNNNNNNNN.G",
+    "Y.NTTTTTTTN.Y",
+    "G.NTXXXXXTN.G",
+    "Y.NTTTTTTTN.Y",
+    "G.NNNNNNNNN.G",
+    "RYGYGYGYGYGYR"
+  ],
+  "legend": {
+    "R": "NORMAL",
+    "Y": "NORMAL",
+    "G": "GOLD",
+    "N": "NORMAL",
+    "T": "TOUGH",
+    "X": "EXPLOSIVE",
+    ".": "EMPTY"
+  }
+}

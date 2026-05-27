@@ -3,6 +3,7 @@ package com.arkamadoid.audio
 import com.arkamadoid.persistence.PreferencesStore
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.audio.Music
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.JsonReader
 
@@ -13,6 +14,7 @@ class AudioManager(private val prefs: PreferencesStore) : Disposable {
     private val trackFiles: Map<MusicTrack, String>
     private val trackLoops: Map<MusicTrack, Boolean>
     private val musicCache = mutableMapOf<MusicTrack, Music>()
+    private val sfxCache = mutableMapOf<Sfx, Sound>()
 
     private var current: PlayingTrack? = null
     private var pending: PlayingTrack? = null
@@ -24,6 +26,14 @@ class AudioManager(private val prefs: PreferencesStore) : Disposable {
         val (files, loops) = loadManifest()
         trackFiles = files
         trackLoops = loops
+        loadSfx()
+    }
+
+    private fun loadSfx() {
+        for (sfx in Sfx.values()) {
+            val handle = Gdx.files.internal("audio/sfx/${sfx.name.lowercase()}.ogg")
+            if (handle.exists()) sfxCache[sfx] = Gdx.audio.newSound(handle)
+        }
     }
 
     private fun loadManifest(): Pair<Map<MusicTrack, String>, Map<MusicTrack, Boolean>> {
@@ -39,7 +49,10 @@ class AudioManager(private val prefs: PreferencesStore) : Disposable {
     }
 
     fun playSfx(sfx: Sfx, pitch: Float = 1f) {
-        // TODO: when SFX assets land, route through libgdx Sound with prefs.data.sfxVolume
+        val sound = sfxCache[sfx] ?: return
+        val vol = prefs.data.sfxVolume
+        if (vol <= 0f) return
+        sound.play(vol, pitch, 0f)
     }
 
     fun playMusic(track: MusicTrack, fadeSeconds: Float = 0.8f) {
@@ -115,5 +128,7 @@ class AudioManager(private val prefs: PreferencesStore) : Disposable {
         pending?.music?.stop()
         musicCache.values.forEach { it.dispose() }
         musicCache.clear()
+        sfxCache.values.forEach { it.dispose() }
+        sfxCache.clear()
     }
 }
