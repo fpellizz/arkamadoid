@@ -53,6 +53,16 @@ class ArkamadoidGame(
         crt.resize(width, height)
     }
 
+    /**
+     * Defensive save su perdita focus (RNF-R-02): la maggior parte degli stati è già
+     * salvata eagerly quando cambia (settings, achievement, score), ma se la run
+     * sblocca qualcosa proprio prima che l'OS killi il processo, vogliamo flushare.
+     */
+    override fun pause() {
+        super.pause()
+        if (::prefs.isInitialized) prefs.save()
+    }
+
     override fun dispose() {
         screen?.dispose()
         fonts.dispose()
