@@ -142,6 +142,7 @@ class GameplayScreen(
         p.y = PADDLE_Y
 
         state.balls.clear()
+        state.combo = 0
         droppingPowerUps.clear()
         laserBolts.clear()
         laserCooldown = 0f
@@ -274,6 +275,8 @@ class GameplayScreen(
 
             if (CollisionResolver.ballVsPaddle(ball, state.paddle)) {
                 game.audio.playSfx(AudioManager.Sfx.BOUNCE)
+                // COMBO: il bounce paddle rompe la catena (risk/reward)
+                state.combo = 0
                 if (state.paddle.hasCatch) {
                     ball.velocity.set(0f, 0f)
                     ball.stuckToPaddle = true
@@ -332,7 +335,8 @@ class GameplayScreen(
     }
 
     private fun onBrickDestroyed(brick: Brick, level: Level) {
-        state.score += brick.type.score
+        state.combo += 1
+        state.score += brick.type.score * comboMultiplier(state.combo)
         particles.burstAt(
             brick.x + brick.width / 2f,
             brick.y + brick.height / 2f,
@@ -363,7 +367,8 @@ class GameplayScreen(
             if (b.type == Brick.Type.INDESTRUCTIBLE) continue
             if (!b.bounds.overlaps(r)) continue
             b.hp = 0
-            state.score += b.type.score
+            state.combo += 1
+            state.score += b.type.score * comboMultiplier(state.combo)
             particles.burstAt(
                 b.x + b.width / 2f,
                 b.y + b.height / 2f,
@@ -529,6 +534,13 @@ class GameplayScreen(
     private fun brickColorOf(brick: Brick): Color =
         brickPalette[brick.colorIndex % brickPalette.size]
 
+    private fun comboMultiplier(c: Int): Int = when {
+        c >= COMBO_TIER_4 -> 4
+        c >= COMBO_TIER_3 -> 3
+        c >= COMBO_TIER_2 -> 2
+        else -> 1
+    }
+
     private fun triggerPickupPopup(type: PowerUpType) {
         popupText = pickupLabel(type)
         popupColor.set(powerUpColor(type))
@@ -670,6 +682,15 @@ class GameplayScreen(
         valueFont.color = Theme.Palette.TERTIARY
         valueFont.draw(batch, "%07d".format(state.score), scoreCardRect.x + 18f, scoreCardRect.y + 50f)
 
+        // COMBO overlay (sotto la score card, visibile solo da combo ≥ 2)
+        if (state.combo >= COMBO_DISPLAY_MIN) {
+            val mult = comboMultiplier(state.combo)
+            val comboFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
+            comboFont.color = Theme.Palette.PRIMARY_CONTAINER
+            val comboTxt = "COMBO %02d ×%d".format(state.combo, mult)
+            comboFont.draw(batch, comboTxt, scoreCardRect.x + 18f, scoreCardRect.y - 14f)
+        }
+
         // SECTOR card (label + valore centrati)
         labelFont.color = Theme.Palette.PRIMARY_CONTAINER
         val sectorLabel = "SECTOR"
@@ -792,6 +813,10 @@ class GameplayScreen(
         const val BLACKBALL_DURATION = 4.5f
         const val ZEROGRAV_DURATION = 12.0f
         const val ZEROGRAV_SLOW_FACTOR = 0.5f
+        const val COMBO_TIER_2 = 4
+        const val COMBO_TIER_3 = 8
+        const val COMBO_TIER_4 = 12
+        const val COMBO_DISPLAY_MIN = 2
 
         const val SHAKE_INTENSITY_LIGHT = 1.5f
         const val SHAKE_INTENSITY_HEAVY = 4f
