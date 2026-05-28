@@ -33,6 +33,7 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
     private val items = listOf(
         Item(I18n["menu.play"], Theme.Palette.PRIMARY_CONTAINER) { game.setScreen(ModeSelectScreen(game)) },
         Item(I18n["menu.scores"], Theme.Palette.SECONDARY_CONTAINER) { game.setScreen(HighScoreScreen(game)) },
+        Item(I18n["menu.achievements"], Theme.Palette.NEON_GREEN) { game.setScreen(AchievementsScreen(game)) },
         Item(I18n["menu.settings"], Theme.Palette.TERTIARY) { game.setScreen(SettingsScreen(game)) },
         Item(I18n["menu.home"], Theme.Palette.PRIMARY_FIXED) { game.setScreen(AttractScreen(game)) },
         Item(I18n["menu.exit"], Theme.Palette.ERROR) { game.platform.exitApp() },
