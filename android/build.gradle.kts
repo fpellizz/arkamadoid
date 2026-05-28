@@ -1,9 +1,20 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     kotlin("android")
 }
 
 val gdxVersion: String by project
+
+// keystore.properties è gitignored; in CI i parametri arrivano dalle env vars.
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use(::load)
+}
+
+fun keystoreValue(propKey: String, envKey: String): String? =
+    keystoreProps.getProperty(propKey) ?: System.getenv(envKey)?.takeIf { it.isNotBlank() }
 
 android {
     namespace = "com.arkamadoid.android"
@@ -13,11 +24,26 @@ android {
         applicationId = "com.arkamadoid"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = (keystoreValue("versionCode", "VERSION_CODE")?.toIntOrNull()) ?: 1
+        versionName = keystoreValue("versionName", "VERSION_NAME") ?: "0.1.0"
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            val storePath = keystoreValue("storeFile", "RELEASE_KEYSTORE_PATH")
+            val storePass = keystoreValue("storePassword", "RELEASE_KEYSTORE_PASSWORD")
+            val aliasName = keystoreValue("keyAlias", "RELEASE_KEY_ALIAS")
+            val keyPass = keystoreValue("keyPassword", "RELEASE_KEY_PASSWORD")
+            if (storePath != null && storePass != null && aliasName != null && keyPass != null) {
+                storeFile = rootProject.file(storePath)
+                storePassword = storePass
+                keyAlias = aliasName
+                keyPassword = keyPass
+            }
         }
     }
 
@@ -36,6 +62,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // applica la signing config solo se la keystore è configurata
+            val sc = signingConfigs.getByName("release")
+            if (sc.storeFile != null) signingConfig = sc
         }
         debug {
             applicationIdSuffix = ".debug"

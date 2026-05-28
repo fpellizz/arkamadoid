@@ -51,6 +51,8 @@ hs_err_pid*
 *.jks
 *.keystore
 keystore.properties
+release-keystore*
+
 
 ## Generated assets
 android/assets/

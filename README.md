@@ -38,7 +38,50 @@ arkamadoid/
 | Avviare la versione desktop (dev) | `./gradlew :desktop:run` |
 | Installare debug APK su device collegato | `./gradlew :android:installDebug` |
 | Build release APK | `./gradlew :android:assembleRelease` |
+| Build release App Bundle (per Play Store) | `./gradlew :android:bundleRelease` |
 | Pulire | `./gradlew clean` |
+
+## Build release (firma)
+
+Per produrre APK/AAB firmati serve un keystore e le sue credenziali.
+
+### Locale
+
+1. Genera (o procura) `release-keystore.jks` (resta `gitignored`):
+   ```bash
+   keytool -genkeypair -v \
+     -keystore release-keystore.jks -storetype PKCS12 \
+     -keyalg RSA -keysize 2048 -validity 10000 \
+     -alias arkamadoid \
+     -dname "CN=Arkamadoid, OU=Indie, O=Arkamadoid Industries, C=IT"
+   ```
+2. Crea `keystore.properties` in radice (anch'esso `gitignored`):
+   ```
+   storeFile=release-keystore.jks
+   storePassword=<la-tua-password>
+   keyAlias=arkamadoid
+   keyPassword=<la-tua-password>
+   ```
+3. `./gradlew :android:assembleRelease` — APK firmato finisce in
+   `android/build/outputs/apk/release/`.
+
+**Conserva il keystore in un password manager o backup offline**:
+se lo perdi non potrai più pubblicare aggiornamenti dell'app firmati
+con la stessa chiave su Play Store.
+
+### CI (GitHub Actions)
+
+Il workflow `release.yml` parte su tag `v*.*.*` o `workflow_dispatch`.
+Richiede 3 Secrets nel repo:
+
+| Secret | Contenuto |
+|---|---|
+| `RELEASE_KEYSTORE_BASE64` | output di `base64 -w0 release-keystore.jks` |
+| `RELEASE_KEYSTORE_PASSWORD` | password del keystore |
+| `RELEASE_KEY_PASSWORD` | password della chiave (può coincidere con quella del keystore) |
+
+Output: APK + AAB come artefatti del run, e una GitHub Release con i
+binari allegati se il trigger è un tag.
 
 ## Roadmap implementazione
 
