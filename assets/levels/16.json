@@ -1,33 +1,29 @@
 {
-  "name": "SECTOR 16",
-  "ballSpeed": 320,
+  "name": "BOSS // GUARDIAN.02",
+  "ballSpeed": 280,
   "grid": {
     "cols": 13,
-    "rows": 8,
+    "rows": 2,
     "cellWidth": 16,
     "cellHeight": 8,
     "originX": 16,
-    "originY": 264
+    "originY": 288
   },
   "rows": [
-    "III.......III",
-    "IRI.NNNNN.IYI",
-    "IRI.RRRRR.IYI",
-    "IGI.YYYYY.IGI",
-    "ITI.GGGGG.ITI",
-    "IVI.TTTTT.IVI",
-    "III.VVVVV.III",
-    "X...........X"
+    "II.........II",
+    "I...........I"
   ],
   "legend": {
     "I": "INDESTRUCTIBLE",
-    "N": "NORMAL",
-    "R": "NORMAL",
-    "Y": "NORMAL",
-    "G": "GOLD",
-    "T": "TOUGH",
-    "V": "VERY_TOUGH",
-    "X": "EXPLOSIVE",
     ".": "EMPTY"
+  },
+  "boss": {
+    "x": 80,
+    "y": 232,
+    "width": 80,
+    "height": 16,
+    "hp": 22,
+    "oscillationSpeed": 70,
+    "oscillationRange": 96
   }
 }

@@ -1,6 +1,7 @@
 package com.arkamadoid.gameplay
 
 import com.arkamadoid.config.GameConfig
+import com.arkamadoid.entities.Boss
 import com.arkamadoid.entities.Brick
 import kotlin.math.abs
 import kotlin.random.Random
@@ -18,6 +19,9 @@ object EndlessLevelGenerator {
     private const val ORIGIN_X = 16f
 
     fun generate(index: Int): Level {
+        // ogni 8 livelli (32, 40, 48, ...): boss room invece di un pattern brick
+        if (index % 8 == 0) return generateBossRoom(index)
+
         val rng = Random(seedFor(index))
         val rows = (6 + (index - GameConfig.MAX_LEVELS) / 6).coerceIn(6, 8)
         val originY = 240f + (rows - 6) * 8f
@@ -52,6 +56,29 @@ object EndlessLevelGenerator {
         val speed = (260f + (index - GameConfig.MAX_LEVELS) * 4f)
             .coerceIn(GameConfig.BALL_INITIAL_SPEED, GameConfig.BALL_MAX_SPEED)
         return Level(index, "SECTOR %02d".format(index), bricks, speed)
+    }
+
+    /**
+     * Boss procedurale per i livelli ENDLESS multipli di 8 oltre i 24 hand-crafted.
+     * HP cresce linearmente con l'index; dimensione e velocità anch'esse.
+     */
+    private fun generateBossRoom(index: Int): Level {
+        val tier = (index / 8).coerceAtLeast(4) // 32→4, 40→5, 48→6, ...
+        val hp = 26 + (tier - 4) * 8
+        val width = (80f + (tier - 4) * 4f).coerceAtMost(112f)
+        val height = (16f + (tier - 4) * 1f).coerceAtMost(20f)
+        val originY = 240f
+        val boss = Boss(
+            x = (GameConfig.VIRTUAL_WIDTH - width) / 2f,
+            y = originY,
+            width = width,
+            height = height,
+            maxHp = hp,
+            oscillationSpeed = (70f + (tier - 4) * 8f).coerceAtMost(140f),
+            oscillationRange = 96f,
+        ).also { it.anchorX = it.x }
+        val speed = (300f + (tier - 4) * 4f).coerceIn(GameConfig.BALL_INITIAL_SPEED, GameConfig.BALL_MAX_SPEED)
+        return Level(index, "BOSS // GUARDIAN.%02d".format(tier), mutableListOf(), speed, boss = boss)
     }
 
     private fun seedFor(index: Int): Long {

@@ -1,6 +1,7 @@
 package com.arkamadoid.gameplay
 
 import com.arkamadoid.config.GameConfig
+import com.arkamadoid.entities.Boss
 import com.arkamadoid.entities.Brick
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.JsonReader
@@ -48,6 +49,21 @@ object LevelLoader {
             rowIndex++
         }
 
-        return Level(index, name, bricks, ballSpeed)
+        val level = Level(index, name, bricks, ballSpeed)
+        if (root.has("boss")) {
+            val b = root.get("boss")
+            val boss = Boss(
+                x = b.getFloat("x"),
+                y = b.getFloat("y"),
+                width = b.getFloat("width"),
+                height = b.getFloat("height"),
+                maxHp = b.getInt("hp"),
+                oscillationSpeed = b.getFloat("oscillationSpeed", 60f),
+                oscillationRange = b.getFloat("oscillationRange", 80f),
+            )
+            boss.anchorX = boss.x
+            level.boss = boss
+        }
+        return level
     }
 }

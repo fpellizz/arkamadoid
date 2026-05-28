@@ -131,6 +131,7 @@ class GameplayScreen(
         }
         state.currentLevel = level
         positionPaddleAndBall()
+        if (level.boss != null) game.audio.playMusic(MusicTrack.BOSS)
     }
 
     private fun positionPaddleAndBall() {
@@ -293,8 +294,20 @@ class GameplayScreen(
                     if (!ball.isBlackBall) break
                 }
             }
+
+            // boss hit: dopo il loop brick (così non interferisce con BLACKBALL chain)
+            val boss = level.boss
+            if (boss != null && boss.alive && CollisionResolver.ballVsBoss(ball, boss)) {
+                state.combo += 1
+                state.score += BOSS_HIT_SCORE * comboMultiplier(state.combo)
+                game.audio.playSfx(AudioManager.Sfx.BRICK, pitch = 0.8f)
+                if (!boss.alive) onBossDefeated(boss)
+            }
+
             if (ball.blackBallRemaining > 0f) ball.blackBallRemaining -= dt
         }
+
+        level.boss?.takeIf { it.alive }?.update(dt)
 
         if (zeroGravityRemaining > 0f) zeroGravityRemaining -= dt
 
@@ -352,6 +365,36 @@ class GameplayScreen(
             )
         }
         if (brick.type == Brick.Type.EXPLOSIVE) explodeAround(brick, level)
+    }
+
+    private fun onBossDefeated(boss: com.arkamadoid.entities.Boss) {
+        state.score += BOSS_KILL_SCORE
+        triggerImpact(explosive = true)
+        // big burst di particelle magenta
+        val count = if (game.prefs.data.reduceMotion) 12 else 40
+        particles.burstAt(boss.centerX(), boss.centerY(), Theme.Palette.PRIMARY_CONTAINER, count)
+        particles.burstAt(boss.centerX(), boss.centerY(), Theme.Palette.TERTIARY, count / 2)
+        // shower di power-up dal centro del boss
+        val drops = listOf(
+            PowerUpType.MULTI,
+            PowerUpType.EXPAND,
+            PowerUpType.LASER,
+            PowerUpType.LIFE,
+            PowerUpType.ZEROGRAV,
+        )
+        drops.forEachIndexed { i, t ->
+            droppingPowerUps += PowerUp(
+                x = boss.centerX() - 8f + (i - drops.size / 2f) * 18f,
+                y = boss.y,
+                type = t,
+            )
+        }
+        game.audio.playSfx(AudioManager.Sfx.POWERUP, pitch = 0.7f)
+        game.audio.playSfx(AudioManager.Sfx.BRICK, pitch = 0.5f)
+        haptic(HAPTIC_LIFE_LOST_MS)
+        triggerPickupPopup(PowerUpType.MULTI) // riusa il popup, ma override del testo subito sotto
+        popupText = "BOSS CLEARED"
+        popupColor.set(Theme.Palette.PRIMARY_CONTAINER)
     }
 
     private fun explodeAround(center: Brick, level: Level) {
@@ -614,6 +657,23 @@ class GameplayScreen(
             }
         }
 
+        // boss (grosso glowRect magenta + HP bar sopra) — disegnato dopo i brick
+        state.currentLevel?.boss?.let { boss ->
+            if (boss.alive) {
+                val hpRatio = boss.hp.toFloat() / boss.maxHp.toFloat().coerceAtLeast(1f)
+                val damaged = hpRatio < 0.4f
+                val bossCol = if (damaged) damagedTint.set(Theme.Palette.PRIMARY_CONTAINER).lerp(Color.WHITE, 0.4f)
+                               else Theme.Palette.PRIMARY_CONTAINER
+                PlayfieldRenderer.glowRect(shapes, boss.x, boss.y, boss.width, boss.height, bossCol, cornerRadius = 2f)
+                // HP bar 2px sopra il boss, larga quanto il boss
+                val barY = boss.y + boss.height + 3f
+                shapes.color = Theme.Palette.SURFACE_CONTAINER_HIGH
+                shapes.rect(boss.x, barY, boss.width, 2f)
+                shapes.color = if (damaged) Theme.Palette.ERROR else Theme.Palette.NEON_GREEN
+                shapes.rect(boss.x, barY, boss.width * hpRatio, 2f)
+            }
+        }
+
         // power-up drops (con glow)
         for (pu in droppingPowerUps) {
             PlayfieldRenderer.glowRect(shapes, pu.x, pu.y, 16f, 8f, powerUpColor(pu.type))
@@ -817,6 +877,8 @@ class GameplayScreen(
         const val COMBO_TIER_3 = 8
         const val COMBO_TIER_4 = 12
         const val COMBO_DISPLAY_MIN = 2
+        const val BOSS_HIT_SCORE = 75
+        const val BOSS_KILL_SCORE = 5000
 
         const val SHAKE_INTENSITY_LIGHT = 1.5f
         const val SHAKE_INTENSITY_HEAVY = 4f
