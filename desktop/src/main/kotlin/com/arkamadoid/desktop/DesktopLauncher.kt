@@ -18,6 +18,15 @@ fun main() {
         override val gpgs: GpgsService = NoopGpgsService
         override fun vibrate(milliseconds: Int) {}
         override fun exitApp() { System.exit(0) }
+        override val appVersion: String = "dev"
+        override val isInstalledFromStore: Boolean = false
+        override fun openUrl(url: String) {
+            runCatching {
+                if (java.awt.Desktop.isDesktopSupported()) {
+                    java.awt.Desktop.getDesktop().browse(java.net.URI(url))
+                }
+            }
+        }
     }
     Lwjgl3Application(ArkamadoidGame(platform), config)
 }

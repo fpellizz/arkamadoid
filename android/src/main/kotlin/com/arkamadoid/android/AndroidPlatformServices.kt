@@ -2,9 +2,11 @@ package com.arkamadoid.android
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager as AndroidAudioManager
+import android.net.Uri
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -14,6 +16,38 @@ import com.arkamadoid.services.NoopGpgsService
 import com.arkamadoid.services.PlatformServices
 
 class AndroidPlatformServices(private val activity: Activity) : PlatformServices {
+
+    override val appVersion: String by lazy {
+        runCatching {
+            activity.packageManager.getPackageInfo(activity.packageName, 0).versionName ?: "dev"
+        }.getOrDefault("dev")
+    }
+
+    override val isInstalledFromStore: Boolean by lazy {
+        val storeIds = setOf(
+            "com.android.vending",          // Play Store
+            "com.google.android.feedback",  // Play Store fallback
+            "com.amazon.venezia",           // Amazon Appstore
+        )
+        val installer = runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                activity.packageManager.getInstallSourceInfo(activity.packageName).installingPackageName
+            } else {
+                @Suppress("DEPRECATION")
+                activity.packageManager.getInstallerPackageName(activity.packageName)
+            }
+        }.getOrNull()
+        installer in storeIds
+    }
+
+    override fun openUrl(url: String) {
+        runCatching {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            activity.startActivity(intent)
+        }
+    }
+
 
     override val gpgs: GpgsService =
         if (isGpgsConfigured()) AndroidGpgsService(activity) else NoopGpgsService
