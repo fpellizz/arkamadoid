@@ -49,10 +49,20 @@ class AudioManager(private val prefs: PreferencesStore) : Disposable {
     }
 
     fun playSfx(sfx: Sfx, pitch: Float = 1f) {
-        val sound = sfxCache[sfx] ?: return
         val vol = prefs.data.sfxVolume
         if (vol <= 0f) return
-        sound.play(vol, pitch, 0f)
+        val direct = sfxCache[sfx]
+        if (direct != null) {
+            direct.play(vol, pitch, 0f)
+            return
+        }
+        // fallback per Sfx senza file .ogg dedicato: riusa una traccia esistente con pitch
+        val (fallback, fallbackPitch) = when (sfx) {
+            Sfx.GAME_OVER -> Sfx.LIFE_LOST to 0.55f
+            Sfx.COIN -> Sfx.BRICK to 1.8f
+            else -> return
+        }
+        sfxCache[fallback]?.play(vol, fallbackPitch * pitch, 0f)
     }
 
     fun playMusic(track: MusicTrack, fadeSeconds: Float = 0.8f) {

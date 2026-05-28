@@ -42,6 +42,10 @@ class SettingsScreen(game: ArkamadoidGame) : BaseScreen(game) {
             { if (game.prefs.data.inputMode == InputMode.DRAG_OFFSET) "DRAG" else "ABSOLUTE" },
             { toggleInput() },
             { toggleInput() }),
+        Row("SENSITIVITY",
+            { "%.1fx".format(game.prefs.data.sensitivity) },
+            { setSensitivity(game.prefs.data.sensitivity - 0.1f) },
+            { setSensitivity(game.prefs.data.sensitivity + 0.1f) }),
         Row("CRT FX",
             { if (game.prefs.data.crtShader) "ON" else "OFF" },
             { toggleCrt() },
@@ -81,6 +85,11 @@ class SettingsScreen(game: ArkamadoidGame) : BaseScreen(game) {
     private fun toggleInput() {
         val d = game.prefs.data
         d.inputMode = if (d.inputMode == InputMode.DRAG_OFFSET) InputMode.TOUCH_ABSOLUTE else InputMode.DRAG_OFFSET
+        game.prefs.save()
+    }
+
+    private fun setSensitivity(v: Float) {
+        game.prefs.data.sensitivity = ((v * 10).toInt() / 10f).coerceIn(0.5f, 2.0f)
         game.prefs.save()
     }
 

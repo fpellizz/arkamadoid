@@ -1,7 +1,9 @@
 package com.arkamadoid.screens
 
 import com.arkamadoid.ArkamadoidGame
+import com.arkamadoid.audio.AudioManager
 import com.arkamadoid.audio.MusicTrack
+import com.arkamadoid.config.GameConfig
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
@@ -38,16 +40,26 @@ class GameOverScreen(
     private val downArrowRect = Rectangle(VIRTUAL_W / 2f - 60f, VIRTUAL_H / 2f - 140f, 120f, 80f)
     private val confirmRect = Rectangle((VIRTUAL_W - 360f) / 2f, 180f, 360f, 110f)
 
+    private var countdown = GameConfig.CONTINUE_COUNTDOWN_SECONDS.toFloat()
+
     override fun show() {
         if (finalScore > 0 && mode != "PRACTICE") {
             rank = game.prefs.submitScore("___", finalScore, finalLevel, mode)
             enteringInitials = rank in 1..10
         }
         game.audio.playMusic(MusicTrack.GAME_OVER)
+        game.audio.playSfx(AudioManager.Sfx.GAME_OVER)
     }
 
     override fun render(delta: Float) {
         elapsed += delta
+        if (!enteringInitials && elapsed > 0.8f) {
+            countdown -= delta
+            if (countdown <= 0f) {
+                game.setScreen(MainMenuScreen(game))
+                return
+            }
+        }
 
         Gdx.gl.glClearColor(0.054f, 0.054f, 0.078f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
@@ -100,12 +112,22 @@ class GameOverScreen(
             rankFont.draw(batch, rankLine, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 60f)
         }
 
-        val blink = (elapsed * 1.5f).toInt() % 2 == 0
-        if (blink && elapsed > 0.8f) {
-            val hint = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
-            hint.color = Theme.Palette.SECONDARY_CONTAINER
-            layout.setText(hint, "TAP TO CONTINUE")
-            hint.draw(batch, "TAP TO CONTINUE", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 200f)
+        // countdown 9..1 prima del ritorno al menu
+        if (elapsed > 0.8f) {
+            val secs = countdown.toInt().coerceAtLeast(1)
+            val countFont = game.fonts[Theme.FontSize.DISPLAY, true]
+            countFont.color = Theme.Palette.PRIMARY_CONTAINER
+            val s = "%d".format(secs)
+            layout.setText(countFont, s)
+            countFont.draw(batch, s, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 180f)
+
+            val blink = (elapsed * 1.5f).toInt() % 2 == 0
+            if (blink) {
+                val hint = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
+                hint.color = Theme.Palette.SECONDARY_CONTAINER
+                layout.setText(hint, "TAP TO CONTINUE")
+                hint.draw(batch, "TAP TO CONTINUE", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 290f)
+            }
         }
         batch.end()
     }

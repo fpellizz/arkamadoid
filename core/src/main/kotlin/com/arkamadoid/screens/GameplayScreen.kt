@@ -378,7 +378,10 @@ class GameplayScreen(
                 }
             }
             PowerUpType.MULTI -> spawnMultiball()
-            PowerUpType.LIFE -> state.lives += 1
+            PowerUpType.LIFE -> {
+                state.lives += 1
+                game.audio.playSfx(AudioManager.Sfx.COIN)
+            }
             PowerUpType.LASER -> state.paddle.hasLaser = true
             PowerUpType.CATCH -> state.paddle.hasCatch = true
             PowerUpType.WARP -> onLevelComplete()
