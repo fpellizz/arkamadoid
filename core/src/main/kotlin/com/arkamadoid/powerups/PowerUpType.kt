@@ -9,4 +9,5 @@ enum class PowerUpType(val code: Char) {
     LIFE('1'),
     WARP('W'),
     BLACKBALL('B'),
+    ZEROGRAV('Z'),
 }

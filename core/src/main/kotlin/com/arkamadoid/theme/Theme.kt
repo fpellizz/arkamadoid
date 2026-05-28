@@ -13,6 +13,7 @@ object Theme {
         val NEON_MAGENTA: Color = Color.valueOf("ff00e5")
         val NEON_CYAN: Color = Color.valueOf("00eefc")
         val NEON_YELLOW: Color = Color.valueOf("dbc900")
+        val NEON_GREEN: Color = Color.valueOf("4eff8f")
 
         // M3 surface (dark)
         val SURFACE: Color = Color.valueOf("131319")

@@ -57,6 +57,7 @@ class GameplayScreen(
     private val damagedTint = Color()
     private val tmpColor = Color()
     private val pauseRect = Rectangle(UI_W - 170f, 40f, 130f, 100f)
+    private val zeroGravRect = Rectangle(40f, 40f, 130f, 100f)
     private val scoreCardRect = Rectangle(40f, UI_H - 200f, 220f, 130f)
     private val sectorCardRect = Rectangle((UI_W - 200f) / 2f, UI_H - 200f, 200f, 130f)
     private val integrityCardRect = Rectangle(UI_W - 260f, UI_H - 200f, 220f, 130f)
@@ -73,6 +74,11 @@ class GameplayScreen(
     private var shakeMagnitude = 0f
     private var shakeRemaining = 0f
     private var hitStopRemaining = 0f
+
+    private var practiceZeroGEnabled = true
+    private var zeroGravityRemaining = 0f
+    private val isZeroGravityActive: Boolean
+        get() = (mode == GameMode.PRACTICE && practiceZeroGEnabled) || zeroGravityRemaining > 0f
 
     private val playFieldHeight = GameConfig.VIRTUAL_HEIGHT.toFloat()
     private val playFieldWidth = GameConfig.VIRTUAL_WIDTH.toFloat()
@@ -97,6 +103,7 @@ class GameplayScreen(
         PowerUpType.LASER to 1f,
         PowerUpType.CATCH to 1f,
         PowerUpType.BLACKBALL to 0.12f,
+        PowerUpType.ZEROGRAV to 0.8f,
     )
 
     enum class GameMode { ARCADE, ENDLESS, DAILY, PRACTICE }
@@ -189,6 +196,11 @@ class GameplayScreen(
                 game.setScreen(PauseScreen(game, this))
                 return
             }
+            if (mode == GameMode.PRACTICE && zeroGravRect.contains(tmpUi.x, tmpUi.y)) {
+                practiceZeroGEnabled = !practiceZeroGEnabled
+                game.audio.playSfx(AudioManager.Sfx.POWERUP, pitch = if (practiceZeroGEnabled) 1.2f else 0.8f)
+                return
+            }
             if (skipSectorRect.contains(tmpUi.x, tmpUi.y)) {
                 val now = TimeUtils.nanoTime()
                 if (now - lastSkipTapAt < 400_000_000L) {
@@ -245,8 +257,12 @@ class GameplayScreen(
                 ball.x = state.paddle.x + state.paddle.width / 2f
                 continue
             }
-            ball.x += ball.velocity.x * dt
-            ball.y += ball.velocity.y * dt
+            // ZERO-GRAVITY: la palla rallenta nella metà bassa del field.
+            // Attivabile via toggle in PRACTICE o via power-up ZEROGRAV nelle altre modalità.
+            val ballDt = if (isZeroGravityActive && ball.y < playFieldHeight / 2f)
+                dt * ZEROGRAV_SLOW_FACTOR else dt
+            ball.x += ball.velocity.x * ballDt
+            ball.y += ball.velocity.y * ballDt
             if (!game.prefs.data.reduceMotion) ball.pushTrail()
 
             val wallHit = CollisionResolver.ballVsWalls(ball, playFieldWidth, playFieldHeight)
@@ -276,6 +292,8 @@ class GameplayScreen(
             }
             if (ball.blackBallRemaining > 0f) ball.blackBallRemaining -= dt
         }
+
+        if (zeroGravityRemaining > 0f) zeroGravityRemaining -= dt
 
         if (state.balls.isEmpty()) {
             onBallLost()
@@ -395,6 +413,7 @@ class GameplayScreen(
             PowerUpType.BLACKBALL -> {
                 for (b in state.balls) b.blackBallRemaining = BLACKBALL_DURATION
             }
+            PowerUpType.ZEROGRAV -> zeroGravityRemaining = ZEROGRAV_DURATION
         }
     }
 
@@ -540,6 +559,7 @@ class GameplayScreen(
         PowerUpType.LIFE -> "EXTRA LIFE!"
         PowerUpType.WARP -> "WARP!"
         PowerUpType.BLACKBALL -> "VOID BALL!"
+        PowerUpType.ZEROGRAV -> "Zero-Gravity!"
     }
 
     private fun powerUpColor(type: PowerUpType): Color = when (type) {
@@ -551,6 +571,7 @@ class GameplayScreen(
         PowerUpType.LIFE -> Color.WHITE
         PowerUpType.WARP -> Theme.Palette.PRIMARY_FIXED
         PowerUpType.BLACKBALL -> Theme.Palette.SURFACE_CONTAINER_HIGHEST
+        PowerUpType.ZEROGRAV -> Theme.Palette.NEON_GREEN
     }
 
     private fun draw() {
@@ -673,6 +694,20 @@ class GameplayScreen(
         layout.setText(valueFont, intVal)
         valueFont.draw(batch, intVal, integrityCardRect.x + integrityCardRect.width - 18f - layout.width, integrityCardRect.y + 50f)
 
+        // 0-G toggle (solo PRACTICE): testo "0-G" centrato nel bottone, verde se attivo
+        if (mode == GameMode.PRACTICE) {
+            val zgFont = game.fonts[Theme.FontSize.HEADLINE, true]
+            zgFont.color = if (practiceZeroGEnabled) Theme.Palette.NEON_GREEN else Theme.Palette.OUTLINE_VARIANT
+            val zgLabel = "0-G"
+            layout.setText(zgFont, zgLabel)
+            zgFont.draw(
+                batch,
+                zgLabel,
+                zeroGravRect.x + (zeroGravRect.width - layout.width) / 2f,
+                zeroGravRect.y + (zeroGravRect.height + layout.height) / 2f,
+            )
+        }
+
         // hint footer "SENSORS ACTIVE   SLIDE TO STEER"
         val hintFont = game.fonts[Theme.FontSize.LABEL_SM, true]
         hintFont.color = Theme.Palette.SECONDARY_FIXED_DIM
@@ -755,6 +790,8 @@ class GameplayScreen(
         const val POPUP_LIFETIME = 0.45f
         const val LASER_COOLDOWN = 0.20f
         const val BLACKBALL_DURATION = 4.5f
+        const val ZEROGRAV_DURATION = 12.0f
+        const val ZEROGRAV_SLOW_FACTOR = 0.5f
 
         const val SHAKE_INTENSITY_LIGHT = 1.5f
         const val SHAKE_INTENSITY_HEAVY = 4f
