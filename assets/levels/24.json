@@ -1,33 +1,30 @@
 {
-  "name": "SECTOR 24 / FINAL",
+  "name": "BOSS // OMEGA.FINAL",
   "ballSpeed": 320,
   "grid": {
     "cols": 13,
-    "rows": 8,
+    "rows": 3,
     "cellWidth": 16,
     "cellHeight": 8,
     "originX": 16,
-    "originY": 264
+    "originY": 296
   },
   "rows": [
-    "V.V.V.V.V.V.V",
-    ".I.I.I.I.I.I.",
-    "TNRNRNRNRNRNT",
-    "TRYRYRYRYRYRT",
-    "TYGYGYGYGYGYT",
-    "TGTGTGTGTGTGT",
-    "TVTVTVTVTVTVT",
-    "X...X...X...X"
+    "I.I.I.I.I.I.I",
+    "I...........I",
+    "I.I.......I.I"
   ],
   "legend": {
-    "V": "VERY_TOUGH",
     "I": "INDESTRUCTIBLE",
-    "T": "TOUGH",
-    "N": "NORMAL",
-    "R": "NORMAL",
-    "Y": "NORMAL",
-    "G": "GOLD",
-    "X": "EXPLOSIVE",
     ".": "EMPTY"
+  },
+  "boss": {
+    "x": 72,
+    "y": 224,
+    "width": 96,
+    "height": 18,
+    "hp": 30,
+    "oscillationSpeed": 90,
+    "oscillationRange": 112
   }
 }

@@ -1,6 +1,7 @@
 package com.arkamadoid.gameplay
 
 import com.arkamadoid.entities.Ball
+import com.arkamadoid.entities.Boss
 import com.arkamadoid.entities.Brick
 import com.arkamadoid.entities.Paddle
 import kotlin.math.sqrt
@@ -87,6 +88,57 @@ object CollisionResolver {
         ball.velocity.y -= 2f * dot * ny
 
         if (brick.type != Brick.Type.INDESTRUCTIBLE) brick.hp -= 1
+        return true
+    }
+
+    /**
+     * Collisione palla-boss: stesso schema circle-vs-AABB di ballVsBrick.
+     * - Ritorna true se c'è impatto, decrementando boss.hp di 1.
+     * - BLACKBALL: passa attraverso senza riflesso, infligge 1 danno comunque
+     *   (no one-shot del boss come accade per i brick).
+     */
+    fun ballVsBoss(ball: Ball, boss: Boss): Boolean {
+        if (!boss.alive) return false
+        val r = boss.bounds
+        val cx = ball.x.coerceIn(r.x, r.x + r.width)
+        val cy = ball.y.coerceIn(r.y, r.y + r.height)
+        val dx = ball.x - cx
+        val dy = ball.y - cy
+        val dist2 = dx * dx + dy * dy
+        if (dist2 > ball.radius * ball.radius) return false
+
+        if (ball.isBlackBall) {
+            boss.hp -= 1
+            return true
+        }
+
+        val nx: Float
+        val ny: Float
+        if (dist2 > 1e-6f) {
+            val dist = sqrt(dist2)
+            nx = dx / dist
+            ny = dy / dist
+            ball.x = cx + nx * ball.radius
+            ball.y = cy + ny * ball.radius
+        } else {
+            val penLeft = ball.x - r.x
+            val penRight = (r.x + r.width) - ball.x
+            val penBottom = ball.y - r.y
+            val penTop = (r.y + r.height) - ball.y
+            val minPen = minOf(penLeft, penRight, penBottom, penTop)
+            when (minPen) {
+                penLeft -> { nx = -1f; ny = 0f; ball.x = r.x - ball.radius }
+                penRight -> { nx = 1f; ny = 0f; ball.x = r.x + r.width + ball.radius }
+                penBottom -> { nx = 0f; ny = -1f; ball.y = r.y - ball.radius }
+                else -> { nx = 0f; ny = 1f; ball.y = r.y + r.height + ball.radius }
+            }
+        }
+
+        val dot = ball.velocity.x * nx + ball.velocity.y * ny
+        ball.velocity.x -= 2f * dot * nx
+        ball.velocity.y -= 2f * dot * ny
+
+        boss.hp -= 1
         return true
     }
 
