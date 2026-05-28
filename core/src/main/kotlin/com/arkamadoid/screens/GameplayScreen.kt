@@ -11,6 +11,7 @@ import com.arkamadoid.entities.PowerUp
 import com.arkamadoid.gameplay.CollisionResolver
 import com.arkamadoid.gameplay.CollisionResolver.WallHit
 import com.arkamadoid.gameplay.DailySeed
+import com.arkamadoid.gameplay.EndlessLevelGenerator
 import com.arkamadoid.gameplay.GameState
 import com.arkamadoid.gameplay.Level
 import com.arkamadoid.gameplay.LevelLoader
@@ -114,7 +115,13 @@ class GameplayScreen(
     }
 
     private fun loadLevel(index: Int) {
-        val level = LevelLoader.load(index)
+        val handle = Gdx.files.internal("levels/%02d.json".format(index))
+        val level = if (handle.exists()) {
+            LevelLoader.load(index)
+        } else {
+            // oltre i livelli hand-crafted, ENDLESS continua con il generatore procedurale
+            EndlessLevelGenerator.generate(index)
+        }
         state.currentLevel = level
         positionPaddleAndBall()
     }
@@ -444,12 +451,8 @@ class GameplayScreen(
         }
         val next = state.levelIndex + 1
         val handle = Gdx.files.internal("levels/%02d.json".format(next))
-        if (!handle.exists()) {
-            if (mode == GameMode.ENDLESS) {
-                state.levelIndex = 1
-                loadLevel(1)
-                return
-            }
+        if (!handle.exists() && mode != GameMode.ENDLESS) {
+            // modalità che terminano alla fine dei livelli hand-crafted (ARCADE, PRACTICE)
             disposeOnHide = true
             game.setScreen(GameOverScreen(game, state.score, state.levelIndex, mode = mode.name))
             return
