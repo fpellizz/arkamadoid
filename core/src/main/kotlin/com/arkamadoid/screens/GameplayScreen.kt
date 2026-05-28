@@ -239,7 +239,7 @@ class GameplayScreen(
             }
             ball.x += ball.velocity.x * dt
             ball.y += ball.velocity.y * dt
-            ball.pushTrail()
+            if (!game.prefs.data.reduceMotion) ball.pushTrail()
 
             val wallHit = CollisionResolver.ballVsWalls(ball, playFieldWidth, playFieldHeight)
             if (wallHit == WallHit.BOTTOM) {
@@ -309,7 +309,7 @@ class GameplayScreen(
             brick.x + brick.width / 2f,
             brick.y + brick.height / 2f,
             brickColorOf(brick),
-            count = 8,
+            count = if (game.prefs.data.reduceMotion) 3 else 8,
         )
         triggerImpact(brick.type == Brick.Type.EXPLOSIVE)
         if (Random.nextFloat() < GameConfig.POWERUP_DROP_CHANCE) {
@@ -340,7 +340,7 @@ class GameplayScreen(
                 b.x + b.width / 2f,
                 b.y + b.height / 2f,
                 brickColorOf(b),
-                count = 6,
+                count = if (game.prefs.data.reduceMotion) 2 else 6,
             )
             if (b.type == Brick.Type.EXPLOSIVE) chain += b
         }
@@ -462,15 +462,20 @@ class GameplayScreen(
     }
 
     private fun triggerImpact(explosive: Boolean) {
+        val reduceMotion = game.prefs.data.reduceMotion
         if (explosive) {
-            shakeMagnitude = SHAKE_INTENSITY_HEAVY
-            shakeRemaining = SHAKE_DURATION_HEAVY
-            hitStopRemaining = HIT_STOP_HEAVY
+            if (!reduceMotion) {
+                shakeMagnitude = SHAKE_INTENSITY_HEAVY
+                shakeRemaining = SHAKE_DURATION_HEAVY
+                hitStopRemaining = HIT_STOP_HEAVY
+            }
             haptic(HAPTIC_HEAVY_MS)
         } else {
-            shakeMagnitude = SHAKE_INTENSITY_LIGHT
-            shakeRemaining = SHAKE_DURATION_LIGHT
-            hitStopRemaining = HIT_STOP_LIGHT
+            if (!reduceMotion) {
+                shakeMagnitude = SHAKE_INTENSITY_LIGHT
+                shakeRemaining = SHAKE_DURATION_LIGHT
+                hitStopRemaining = HIT_STOP_LIGHT
+            }
             haptic(HAPTIC_LIGHT_MS)
         }
     }
@@ -498,7 +503,7 @@ class GameplayScreen(
             p.x + p.width / 2f,
             p.y + p.height + 8f,
             popupColor,
-            count = 22,
+            count = if (game.prefs.data.reduceMotion) 6 else 22,
         )
         popupText = null
         popupRemaining = 0f

@@ -50,6 +50,10 @@ class SettingsScreen(game: ArkamadoidGame) : BaseScreen(game) {
             { if (game.prefs.data.haptics) "ON" else "OFF" },
             { toggleHaptics() },
             { toggleHaptics() }),
+        Row("REDUCE MOTION",
+            { if (game.prefs.data.reduceMotion) "ON" else "OFF" },
+            { toggleReduceMotion() },
+            { toggleReduceMotion() }),
     )
 
     private val decRects: List<Rectangle>
@@ -87,6 +91,11 @@ class SettingsScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
     private fun toggleHaptics() {
         game.prefs.data.haptics = !game.prefs.data.haptics
+        game.prefs.save()
+    }
+
+    private fun toggleReduceMotion() {
+        game.prefs.data.reduceMotion = !game.prefs.data.reduceMotion
         game.prefs.save()
     }
 

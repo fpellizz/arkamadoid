@@ -84,7 +84,7 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
             val ball = iter.next()
             ball.x += ball.velocity.x * dt
             ball.y += ball.velocity.y * dt
-            ball.pushTrail()
+            if (!game.prefs.data.reduceMotion) ball.pushTrail()
 
             val wh = CollisionResolver.ballVsWalls(ball, playFieldW, playFieldH)
             if (wh == CollisionResolver.WallHit.BOTTOM) {
