@@ -47,6 +47,9 @@ class GameOverScreen(
         if (finalScore > 0 && mode != "PRACTICE") {
             rank = game.prefs.submitScore("___", finalScore, finalLevel, mode)
             enteringInitials = rank in 1..10
+            // GPGS leaderboard: ID logico = mode lowercase (arcade/endless/daily).
+            // AndroidGpgsService traduce in vero GPGS ID via R.string.gpgs_leaderboard_<id>.
+            game.platform.gpgs.submitScore(mode.lowercase(), finalScore.toLong())
         }
         game.audio.playMusic(MusicTrack.GAME_OVER)
         game.audio.playSfx(AudioManager.Sfx.GAME_OVER)

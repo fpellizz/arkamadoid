@@ -1,6 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Arkamadoid</string>
-    <!-- Replace with your real Google Play Console app id -->
+
+    <!--
+        ============================================================
+        GPGS (Google Play Games Services) — istruzioni di setup
+        ============================================================
+        Vedi GPGS_SETUP.md per i passi step-by-step nel Play Console.
+        Finché gpgs_app_id resta tutti zeri, l'integrazione è disabilitata
+        (AndroidPlatformServices.isGpgsConfigured() ritorna false) e tutte
+        le chiamate diventano no-op via NoopGpgsService.
+    -->
     <string name="gpgs_app_id" translatable="false">000000000000</string>
+
+    <!-- Leaderboard IDs (formato Play Console: CgkI...). Lasciare vuoto = skip. -->
+    <string name="gpgs_leaderboard_arcade" translatable="false"></string>
+    <string name="gpgs_leaderboard_endless" translatable="false"></string>
+    <string name="gpgs_leaderboard_daily" translatable="false"></string>
+
+    <!-- Achievement IDs (formato Play Console: CgkI...). Lasciare vuoto = skip. -->
+    <string name="gpgs_achievement_first_brick" translatable="false"></string>
+    <string name="gpgs_achievement_combo_x2" translatable="false"></string>
+    <string name="gpgs_achievement_combo_x4" translatable="false"></string>
+    <string name="gpgs_achievement_boss_first" translatable="false"></string>
+    <string name="gpgs_achievement_boss_final" translatable="false"></string>
+    <string name="gpgs_achievement_pixel_perfect" translatable="false"></string>
+    <string name="gpgs_achievement_no_power" translatable="false"></string>
+    <string name="gpgs_achievement_endless_30" translatable="false"></string>
+    <string name="gpgs_achievement_centurion" translatable="false"></string>
 </resources>

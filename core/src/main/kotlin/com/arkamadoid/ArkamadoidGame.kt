@@ -34,6 +34,8 @@ class ArkamadoidGame(
             onLoss = { audio.pauseForFocus() },
             onGain = { audio.resumeFromFocus() },
         )
+        // silent best-effort sign-in: se GPGS è configurato proviamo, altrimenti no-op
+        platform.gpgs.signIn()
         setScreen(BootScreen(this))
     }
 
