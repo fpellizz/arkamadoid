@@ -1,6 +1,7 @@
 package com.arkamadoid.screens
 
 import com.arkamadoid.ArkamadoidGame
+import com.arkamadoid.localization.I18n
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
@@ -74,8 +75,9 @@ class HighScoreScreen(game: ArkamadoidGame) : BaseScreen(game) {
         batch.begin()
         val title = game.fonts[Theme.FontSize.DISPLAY, true]
         title.color = Theme.Palette.SECONDARY_CONTAINER
-        layout.setText(title, "SCORES")
-        title.draw(batch, "SCORES", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H - 120f)
+        val titleTxt = I18n["highScore.title"]
+        layout.setText(title, titleTxt)
+        title.draw(batch, titleTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H - 120f)
 
         val tabFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
         modes.forEachIndexed { i, m ->
@@ -90,18 +92,20 @@ class HighScoreScreen(game: ArkamadoidGame) : BaseScreen(game) {
         if (scores.isEmpty()) {
             val emptyFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
             emptyFont.color = Theme.Palette.ON_SURFACE_VARIANT
-            layout.setText(emptyFont, "DATA_STORE EMPTY")
-            emptyFont.draw(batch, "DATA_STORE EMPTY", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 40f)
+            val emptyTxt = I18n["highScore.empty"]
+            layout.setText(emptyFont, emptyTxt)
+            emptyFont.draw(batch, emptyTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 40f)
 
             val sub = game.fonts[Theme.FontSize.BODY_MD]
             sub.color = Theme.Palette.ON_SURFACE_VARIANT
-            layout.setText(sub, "no runs recorded yet for ${modes[selectedMode]}")
-            sub.draw(batch, "no runs recorded yet for ${modes[selectedMode]}", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 20f)
+            val subTxt = I18n.format("highScore.emptySub", modes[selectedMode])
+            layout.setText(sub, subTxt)
+            sub.draw(batch, subTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 20f)
         } else {
             val rowFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
             val labelFont = game.fonts[Theme.FontSize.BODY_MD]
             labelFont.color = Theme.Palette.ON_SURFACE_VARIANT
-            val header = "#   NAME    SCORE      SECT"
+            val header = I18n["highScore.header"]
             layout.setText(labelFont, header)
             labelFont.draw(batch, header, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H - 440f)
 
@@ -123,8 +127,9 @@ class HighScoreScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
         val backFont = game.fonts[Theme.FontSize.BODY_MD, true]
         backFont.color = Theme.Palette.ON_SURFACE_VARIANT
-        layout.setText(backFont, "< BACK")
-        backFont.draw(batch, "< BACK", backRect.x + (backRect.width - layout.width) / 2f, backRect.y + backRect.height / 2f + layout.height / 2f)
+        val backTxt = "< ${I18n["nav.back"]}"
+        layout.setText(backFont, backTxt)
+        backFont.draw(batch, backTxt, backRect.x + (backRect.width - layout.width) / 2f, backRect.y + backRect.height / 2f + layout.height / 2f)
         batch.end()
         Gdx.gl.glDisable(GL20.GL_BLEND)
 

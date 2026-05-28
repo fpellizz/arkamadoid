@@ -1,6 +1,7 @@
 package com.arkamadoid
 
 import com.arkamadoid.audio.AudioManager
+import com.arkamadoid.localization.I18n
 import com.arkamadoid.persistence.PreferencesStore
 import com.arkamadoid.render.CrtRenderer
 import com.arkamadoid.screens.BootScreen
@@ -24,6 +25,7 @@ class ArkamadoidGame(
 
     override fun create() {
         prefs = PreferencesStore()
+        I18n.load(prefs.data.language)
         audio = AudioManager(prefs)
         fonts = FontManager()
         crt = CrtRenderer()

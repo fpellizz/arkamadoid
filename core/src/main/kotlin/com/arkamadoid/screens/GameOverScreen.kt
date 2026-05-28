@@ -4,6 +4,7 @@ import com.arkamadoid.ArkamadoidGame
 import com.arkamadoid.audio.AudioManager
 import com.arkamadoid.audio.MusicTrack
 import com.arkamadoid.config.GameConfig
+import com.arkamadoid.localization.I18n
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
@@ -79,19 +80,21 @@ class GameOverScreen(
         batch.begin()
         val title = game.fonts[Theme.FontSize.DISPLAY, true]
         title.color = Theme.Palette.ERROR
-        layout.setText(title, "GAME OVER")
-        title.draw(batch, "GAME OVER", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 160f)
+        val titleTxt = I18n["gameOver.title"]
+        layout.setText(title, titleTxt)
+        title.draw(batch, titleTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 160f)
 
         if (daily) {
             val dailyFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
             dailyFont.color = Theme.Palette.TERTIARY
-            layout.setText(dailyFont, "DAILY CHALLENGE")
-            dailyFont.draw(batch, "DAILY CHALLENGE", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 95f)
+            val dailyTxt = I18n["gameOver.daily"]
+            layout.setText(dailyFont, dailyTxt)
+            dailyFont.draw(batch, dailyTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 95f)
         }
 
         val scoreFont = game.fonts[Theme.FontSize.HEADLINE, true]
         scoreFont.color = Theme.Palette.TERTIARY
-        val scoreLine = "SCORE %07d".format(finalScore)
+        val scoreLine = "${I18n["gameOver.score"]} %07d".format(finalScore)
         layout.setText(scoreFont, scoreLine)
         scoreFont.draw(batch, scoreLine, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f + 20f)
 
@@ -99,7 +102,7 @@ class GameOverScreen(
             val bestFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
             bestFont.color = Theme.Palette.PRIMARY
             val best = game.prefs.data.dailyBestScore
-            val line = "TODAY BEST  %07d".format(best)
+            val line = "${I18n["gameOver.todayBest"]}  %07d".format(best)
             layout.setText(bestFont, line)
             bestFont.draw(batch, line, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 30f)
         }
@@ -107,7 +110,7 @@ class GameOverScreen(
         if (rank in 1..10) {
             val rankFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
             rankFont.color = Theme.Palette.PRIMARY_CONTAINER
-            val rankLine = "NEW HIGH SCORE  #%02d  AS  %s".format(rank, String(initials))
+            val rankLine = "${I18n["gameOver.newHighScore"]}  #%02d  ${I18n["gameOver.as"]}  %s".format(rank, String(initials))
             layout.setText(rankFont, rankLine)
             rankFont.draw(batch, rankLine, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 60f)
         }
@@ -125,8 +128,9 @@ class GameOverScreen(
             if (blink) {
                 val hint = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
                 hint.color = Theme.Palette.SECONDARY_CONTAINER
-                layout.setText(hint, "TAP TO CONTINUE")
-                hint.draw(batch, "TAP TO CONTINUE", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 290f)
+                val hintTxt = I18n["gameOver.tapContinue"]
+                layout.setText(hint, hintTxt)
+                hint.draw(batch, hintTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 290f)
             }
         }
         batch.end()
@@ -147,14 +151,15 @@ class GameOverScreen(
         batch.begin()
         val title = game.fonts[Theme.FontSize.HEADLINE, true]
         title.color = Theme.Palette.PRIMARY_CONTAINER
-        val titleLine = "NEW HIGH SCORE  #%02d".format(rank)
+        val titleLine = "${I18n["gameOver.newHighScore"]}  #%02d".format(rank)
         layout.setText(title, titleLine)
         title.draw(batch, titleLine, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H - 180f)
 
         val sub = game.fonts[Theme.FontSize.HEADLINE_MOBILE]
         sub.color = Theme.Palette.ON_SURFACE_VARIANT
-        layout.setText(sub, "ENTER YOUR NAME")
-        sub.draw(batch, "ENTER YOUR NAME", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H - 280f)
+        val subTxt = I18n["gameOver.enterName"]
+        layout.setText(sub, subTxt)
+        sub.draw(batch, subTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H - 280f)
 
         val letterFont = game.fonts[Theme.FontSize.DISPLAY, true]
         for (i in 0..2) {
@@ -174,8 +179,9 @@ class GameOverScreen(
 
         val confirmFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
         confirmFont.color = Theme.Palette.PRIMARY_CONTAINER
-        layout.setText(confirmFont, "CONFIRM")
-        confirmFont.draw(batch, "CONFIRM", confirmRect.x + (confirmRect.width - layout.width) / 2f, confirmRect.y + confirmRect.height / 2f + layout.height / 2f)
+        val confirmTxt = I18n["gameOver.confirm"]
+        layout.setText(confirmFont, confirmTxt)
+        confirmFont.draw(batch, confirmTxt, confirmRect.x + (confirmRect.width - layout.width) / 2f, confirmRect.y + confirmRect.height / 2f + layout.height / 2f)
         batch.end()
     }
 

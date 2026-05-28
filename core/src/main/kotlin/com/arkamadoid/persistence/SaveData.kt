@@ -13,7 +13,7 @@ data class SaveData(
     var crtShader: Boolean = true,
     var reduceMotion: Boolean = false,
     var haptics: Boolean = true,
-    var language: String = "it",
+    var language: String = "auto",
     var dailyDate: String = "",
     var dailyBestScore: Int = 0,
 ) {

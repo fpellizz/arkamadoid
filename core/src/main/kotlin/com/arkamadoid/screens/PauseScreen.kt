@@ -1,6 +1,7 @@
 package com.arkamadoid.screens
 
 import com.arkamadoid.ArkamadoidGame
+import com.arkamadoid.localization.I18n
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
@@ -47,17 +48,20 @@ class PauseScreen(
         batch.begin()
         val title = game.fonts[Theme.FontSize.DISPLAY, true]
         title.color = Theme.Palette.PRIMARY_CONTAINER
-        layout.setText(title, "PAUSED")
-        title.draw(batch, "PAUSED", (VIRTUAL_W - layout.width) / 2f, 880f)
+        val titleTxt = I18n["pause.title"]
+        layout.setText(title, titleTxt)
+        title.draw(batch, titleTxt, (VIRTUAL_W - layout.width) / 2f, 880f)
 
         val btnFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
         btnFont.color = Theme.Palette.SECONDARY_CONTAINER
-        layout.setText(btnFont, "RESUME")
-        btnFont.draw(batch, "RESUME", resumeRect.x + (resumeRect.width - layout.width) / 2f, resumeRect.y + resumeRect.height / 2f + layout.height / 2f)
+        val resumeTxt = I18n["pause.resume"]
+        layout.setText(btnFont, resumeTxt)
+        btnFont.draw(batch, resumeTxt, resumeRect.x + (resumeRect.width - layout.width) / 2f, resumeRect.y + resumeRect.height / 2f + layout.height / 2f)
 
         btnFont.color = Theme.Palette.ERROR
-        layout.setText(btnFont, "QUIT")
-        btnFont.draw(batch, "QUIT", quitRect.x + (quitRect.width - layout.width) / 2f, quitRect.y + quitRect.height / 2f + layout.height / 2f)
+        val quitTxt = I18n["pause.quit"]
+        layout.setText(btnFont, quitTxt)
+        btnFont.draw(batch, quitTxt, quitRect.x + (quitRect.width - layout.width) / 2f, quitRect.y + quitRect.height / 2f + layout.height / 2f)
         batch.end()
 
         com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)

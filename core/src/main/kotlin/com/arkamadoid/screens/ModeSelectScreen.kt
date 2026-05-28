@@ -1,6 +1,7 @@
 package com.arkamadoid.screens
 
 import com.arkamadoid.ArkamadoidGame
+import com.arkamadoid.localization.I18n
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -22,10 +23,10 @@ class ModeSelectScreen(game: ArkamadoidGame) : BaseScreen(game) {
     private var elapsed = 0f
 
     private val modes = listOf(
-        Mode("ARCADE", "STORY-DRIVEN, 24 SECTORS", Theme.Palette.PRIMARY_CONTAINER, GameplayScreen.GameMode.ARCADE),
-        Mode("ENDLESS", "NO END, JUST SURVIVE", Theme.Palette.SECONDARY_CONTAINER, GameplayScreen.GameMode.ENDLESS),
-        Mode("DAILY", "ONE SHARED LEVEL PER DAY", Theme.Palette.TERTIARY, GameplayScreen.GameMode.DAILY),
-        Mode("PRACTICE", "NO DEATH, NO SCORE", Theme.Palette.PRIMARY_FIXED, GameplayScreen.GameMode.PRACTICE),
+        Mode("ARCADE", I18n["modeSelect.arcade.desc"], Theme.Palette.PRIMARY_CONTAINER, GameplayScreen.GameMode.ARCADE),
+        Mode("ENDLESS", I18n["modeSelect.endless.desc"], Theme.Palette.SECONDARY_CONTAINER, GameplayScreen.GameMode.ENDLESS),
+        Mode("DAILY", I18n["modeSelect.daily.desc"], Theme.Palette.TERTIARY, GameplayScreen.GameMode.DAILY),
+        Mode("PRACTICE", I18n["modeSelect.practice.desc"], Theme.Palette.PRIMARY_FIXED, GameplayScreen.GameMode.PRACTICE),
     )
 
     private val modeRects: List<Rectangle> = run {
@@ -61,8 +62,9 @@ class ModeSelectScreen(game: ArkamadoidGame) : BaseScreen(game) {
         batch.begin()
         val title = game.fonts[Theme.FontSize.HEADLINE, true]
         title.color = Theme.Palette.PRIMARY
-        layout.setText(title, "SELECT MODE")
-        title.draw(batch, "SELECT MODE", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H - 100f)
+        val titleTxt = I18n["modeSelect.title"]
+        layout.setText(title, titleTxt)
+        title.draw(batch, titleTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H - 100f)
 
         val nameFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
         val descFont = game.fonts[Theme.FontSize.BODY_MD]
@@ -79,8 +81,9 @@ class ModeSelectScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
         val backFont = game.fonts[Theme.FontSize.BODY_MD, true]
         backFont.color = Theme.Palette.ON_SURFACE_VARIANT
-        layout.setText(backFont, "< BACK")
-        backFont.draw(batch, "< BACK", backRect.x + (backRect.width - layout.width) / 2f, backRect.y + backRect.height / 2f + layout.height / 2f)
+        val backTxt = "< ${I18n["nav.back"]}"
+        layout.setText(backFont, backTxt)
+        backFont.draw(batch, backTxt, backRect.x + (backRect.width - layout.width) / 2f, backRect.y + backRect.height / 2f + layout.height / 2f)
         batch.end()
 
         com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)

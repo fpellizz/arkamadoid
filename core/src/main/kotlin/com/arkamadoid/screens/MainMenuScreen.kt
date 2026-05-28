@@ -3,6 +3,7 @@ package com.arkamadoid.screens
 import com.arkamadoid.ArkamadoidGame
 import com.arkamadoid.audio.MusicTrack
 import com.arkamadoid.config.GameConfig
+import com.arkamadoid.localization.I18n
 import com.arkamadoid.net.UpdateChecker
 import com.arkamadoid.theme.Theme
 import com.badlogic.gdx.Gdx
@@ -30,11 +31,11 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
     private var updateChecked = false
 
     private val items = listOf(
-        Item("PLAY", Theme.Palette.PRIMARY_CONTAINER) { game.setScreen(ModeSelectScreen(game)) },
-        Item("SCORES", Theme.Palette.SECONDARY_CONTAINER) { game.setScreen(HighScoreScreen(game)) },
-        Item("SETTINGS", Theme.Palette.TERTIARY) { game.setScreen(SettingsScreen(game)) },
-        Item("HOME", Theme.Palette.PRIMARY_FIXED) { game.setScreen(AttractScreen(game)) },
-        Item("EXIT", Theme.Palette.ERROR) { game.platform.exitApp() },
+        Item(I18n["menu.play"], Theme.Palette.PRIMARY_CONTAINER) { game.setScreen(ModeSelectScreen(game)) },
+        Item(I18n["menu.scores"], Theme.Palette.SECONDARY_CONTAINER) { game.setScreen(HighScoreScreen(game)) },
+        Item(I18n["menu.settings"], Theme.Palette.TERTIARY) { game.setScreen(SettingsScreen(game)) },
+        Item(I18n["menu.home"], Theme.Palette.PRIMARY_FIXED) { game.setScreen(AttractScreen(game)) },
+        Item(I18n["menu.exit"], Theme.Palette.ERROR) { game.platform.exitApp() },
     )
 
     private val itemRects: List<Rectangle> = run {
@@ -109,7 +110,7 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
         if (u != null) {
             val updFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
             updFont.color = Theme.Palette.TERTIARY
-            val txt = "UPDATE AVAILABLE  v${u.latestVersion}  ▸ TAP"
+            val txt = "${I18n["update.available"]}  v${u.latestVersion}  ▸ TAP"
             layout.setText(updFont, txt)
             updFont.draw(batch, txt, updateBannerRect.x + (updateBannerRect.width - layout.width) / 2f,
                 updateBannerRect.y + updateBannerRect.height / 2f + layout.height / 2f)

@@ -7,6 +7,7 @@ import com.arkamadoid.entities.Brick
 import com.arkamadoid.gameplay.CollisionResolver
 import com.arkamadoid.gameplay.GameState
 import com.arkamadoid.gameplay.LevelLoader
+import com.arkamadoid.localization.I18n
 import com.arkamadoid.render.HudCardSide
 import com.arkamadoid.render.PixelViewport
 import com.arkamadoid.render.PlayfieldRenderer
@@ -207,15 +208,17 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
         if (blink) {
             val coinFont = game.fonts[Theme.FontSize.HEADLINE, true]
             coinFont.color = Theme.Palette.PRIMARY_CONTAINER
-            layout.setText(coinFont, "INSERT COIN")
-            coinFont.draw(batch, "INSERT COIN", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 80f)
+            val coinTxt = I18n["menu.insertCoin"]
+            layout.setText(coinFont, coinTxt)
+            coinFont.draw(batch, coinTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 80f)
         }
 
         // TAP TO START sotto
         val pressFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
         pressFont.color = Theme.Palette.SECONDARY_CONTAINER
-        layout.setText(pressFont, "TAP TO START")
-        pressFont.draw(batch, "TAP TO START", (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 160f)
+        val pressTxt = I18n["attract.tapStart"]
+        layout.setText(pressFont, pressTxt)
+        pressFont.draw(batch, pressTxt, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 160f)
 
         batch.end()
         Gdx.gl.glDisable(GL20.GL_BLEND)
