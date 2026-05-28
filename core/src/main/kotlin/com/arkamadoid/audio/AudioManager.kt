@@ -85,6 +85,24 @@ class AudioManager(private val prefs: PreferencesStore) : Disposable {
         }
     }
 
+    private var pausedByFocus = false
+
+    /** Pausa la traccia music corrente per audio focus loss. Idempotente. */
+    fun pauseForFocus() {
+        if (pausedByFocus) return
+        pausedByFocus = true
+        current?.music?.takeIf { it.isPlaying }?.pause()
+        pending?.music?.takeIf { it.isPlaying }?.pause()
+    }
+
+    /** Riprende dopo la pausa da focus. Idempotente. */
+    fun resumeFromFocus() {
+        if (!pausedByFocus) return
+        pausedByFocus = false
+        current?.music?.play()
+        pending?.music?.play()
+    }
+
     fun stopMusic(fadeSeconds: Float = 0.4f) {
         val now = current ?: return
         if (fadeSeconds <= 0f) {

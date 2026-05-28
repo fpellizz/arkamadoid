@@ -28,6 +28,10 @@ class ArkamadoidGame(
         fonts = FontManager()
         crt = CrtRenderer()
         crt.resize(Gdx.graphics.width, Gdx.graphics.height)
+        platform.registerAudioFocusCallbacks(
+            onLoss = { audio.pauseForFocus() },
+            onGain = { audio.resumeFromFocus() },
+        )
         setScreen(BootScreen(this))
     }
 
