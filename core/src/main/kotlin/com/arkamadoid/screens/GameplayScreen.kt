@@ -1,6 +1,7 @@
 package com.arkamadoid.screens
 
 import com.arkamadoid.ArkamadoidGame
+import com.arkamadoid.achievements.Achievement
 import com.arkamadoid.audio.AudioManager
 import com.arkamadoid.audio.MusicTrack
 import com.arkamadoid.config.GameConfig
@@ -16,6 +17,7 @@ import com.arkamadoid.gameplay.GameState
 import com.arkamadoid.gameplay.Level
 import com.arkamadoid.gameplay.LevelLoader
 import com.arkamadoid.input.TouchController
+import com.arkamadoid.localization.I18n
 import com.arkamadoid.powerups.PowerUpType
 import com.arkamadoid.render.HudCardSide
 import com.arkamadoid.render.ParticleSystem
@@ -70,6 +72,16 @@ class GameplayScreen(
     private var popupText: String? = null
     private val popupColor = Color()
     private var popupRemaining = 0f
+
+    // achievement popup (separato dal power-up popup, vita più lunga)
+    private var achPopupTitle: String? = null
+    private var achPopupDesc: String? = null
+    private var achPopupRemaining = 0f
+
+    // counter per-level: usati per PIXEL_PERFECT (no ball lost) e NO_POWER (no power-up pickup)
+    private var ballsLostThisLevel = 0
+    private var powerUpsThisLevel = 0
+    private var lastShownComboMultiplier = 1
 
     private var shakeMagnitude = 0f
     private var shakeRemaining = 0f
@@ -130,8 +142,22 @@ class GameplayScreen(
             EndlessLevelGenerator.generate(index)
         }
         state.currentLevel = level
+        ballsLostThisLevel = 0
+        powerUpsThisLevel = 0
+        lastShownComboMultiplier = 1
         positionPaddleAndBall()
         if (level.boss != null) game.audio.playMusic(MusicTrack.BOSS)
+        // ENDLESS_30: appena entri nel sector 30+ in ENDLESS
+        if (mode == GameMode.ENDLESS && index >= 30) tryUnlockAchievement(Achievement.ENDLESS_30)
+    }
+
+    private fun tryUnlockAchievement(a: Achievement) {
+        if (!game.prefs.unlockAchievement(a.id)) return
+        game.platform.gpgs.unlockAchievement(a.id)
+        achPopupTitle = I18n["achievement.${a.id}.title"]
+        achPopupDesc = I18n["achievement.${a.id}.desc"]
+        achPopupRemaining = ACHIEVEMENT_POPUP_LIFETIME
+        game.audio.playSfx(AudioManager.Sfx.COIN, pitch = 1.4f)
     }
 
     private fun positionPaddleAndBall() {
@@ -185,6 +211,13 @@ class GameplayScreen(
         }
         particles.update(delta)
         expirePopupIfDone(delta)
+        if (achPopupRemaining > 0f) {
+            achPopupRemaining -= delta
+            if (achPopupRemaining <= 0f) {
+                achPopupTitle = null
+                achPopupDesc = null
+            }
+        }
     }
 
     private fun handleInput() {
@@ -300,6 +333,8 @@ class GameplayScreen(
             if (boss != null && boss.alive && CollisionResolver.ballVsBoss(ball, boss)) {
                 state.combo += 1
                 state.score += BOSS_HIT_SCORE * comboMultiplier(state.combo)
+                checkComboAchievements()
+                checkScoreAchievements()
                 game.audio.playSfx(AudioManager.Sfx.BRICK, pitch = 0.8f)
                 if (!boss.alive) onBossDefeated(boss)
             }
@@ -350,6 +385,9 @@ class GameplayScreen(
     private fun onBrickDestroyed(brick: Brick, level: Level) {
         state.combo += 1
         state.score += brick.type.score * comboMultiplier(state.combo)
+        tryUnlockAchievement(Achievement.FIRST_BRICK)
+        checkComboAchievements()
+        checkScoreAchievements()
         particles.burstAt(
             brick.x + brick.width / 2f,
             brick.y + brick.height / 2f,
@@ -369,6 +407,9 @@ class GameplayScreen(
 
     private fun onBossDefeated(boss: com.arkamadoid.entities.Boss) {
         state.score += BOSS_KILL_SCORE
+        tryUnlockAchievement(Achievement.BOSS_FIRST)
+        if (state.levelIndex == GameConfig.MAX_LEVELS) tryUnlockAchievement(Achievement.BOSS_FINAL)
+        checkScoreAchievements()
         triggerImpact(explosive = true)
         // big burst di particelle magenta
         val count = if (game.prefs.data.reduceMotion) 12 else 40
@@ -412,6 +453,8 @@ class GameplayScreen(
             b.hp = 0
             state.combo += 1
             state.score += b.type.score * comboMultiplier(state.combo)
+            checkComboAchievements()
+            checkScoreAchievements()
             particles.burstAt(
                 b.x + b.width / 2f,
                 b.y + b.height / 2f,
@@ -440,6 +483,7 @@ class GameplayScreen(
         game.audio.playSfx(AudioManager.Sfx.POWERUP)
         triggerPickupPopup(type)
         haptic(HAPTIC_POWERUP_MS)
+        powerUpsThisLevel += 1
         when (type) {
             PowerUpType.EXPAND -> state.paddle.width = GameConfig.PADDLE_EXPAND_WIDTH.toFloat()
             PowerUpType.SLOW -> {
@@ -494,6 +538,7 @@ class GameplayScreen(
     private fun onBallLost() {
         game.audio.playSfx(AudioManager.Sfx.LIFE_LOST)
         haptic(HAPTIC_LIFE_LOST_MS)
+        ballsLostThisLevel += 1
         if (mode == GameMode.PRACTICE) {
             positionPaddleAndBall()
             return
@@ -512,6 +557,11 @@ class GameplayScreen(
     }
 
     private fun onLevelComplete() {
+        // achievement per-level (escluso PRACTICE — è training, non vale)
+        if (mode != GameMode.PRACTICE) {
+            if (ballsLostThisLevel == 0) tryUnlockAchievement(Achievement.PIXEL_PERFECT)
+            if (powerUpsThisLevel == 0) tryUnlockAchievement(Achievement.NO_POWER)
+        }
         if (mode == GameMode.DAILY) {
             recordDailyAndExit()
             return
@@ -582,6 +632,18 @@ class GameplayScreen(
         c >= COMBO_TIER_3 -> 3
         c >= COMBO_TIER_2 -> 2
         else -> 1
+    }
+
+    private fun checkComboAchievements() {
+        val mult = comboMultiplier(state.combo)
+        if (mult <= lastShownComboMultiplier) return
+        lastShownComboMultiplier = mult
+        if (mult >= 2) tryUnlockAchievement(Achievement.COMBO_X2)
+        if (mult >= 4) tryUnlockAchievement(Achievement.COMBO_X4)
+    }
+
+    private fun checkScoreAchievements() {
+        if (state.score >= 100_000) tryUnlockAchievement(Achievement.CENTURION)
     }
 
     private fun triggerPickupPopup(type: PowerUpType) {
@@ -842,6 +904,45 @@ class GameplayScreen(
             popupFont.color = tmpColor.set(Color.WHITE)
         }
 
+        // achievement popup: card in alto centrale con titolo + descrizione
+        val achTitle = achPopupTitle
+        val achDesc = achPopupDesc
+        if (achTitle != null && achDesc != null && achPopupRemaining > 0f) {
+            // fade-in nei primi 0.2s, fade-out negli ultimi 0.5s, full opaco nel mezzo
+            val a = when {
+                achPopupRemaining > ACHIEVEMENT_POPUP_LIFETIME - 0.2f -> (ACHIEVEMENT_POPUP_LIFETIME - achPopupRemaining) / 0.2f
+                achPopupRemaining < 0.5f -> achPopupRemaining / 0.5f
+                else -> 1f
+            }.coerceIn(0f, 1f)
+
+            val labelFontSm = game.fonts[Theme.FontSize.LABEL_SM, true]
+            val titleFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
+            val descFont = game.fonts[Theme.FontSize.BODY_MD]
+
+            val headerTxt = "★ ${I18n["achievement.unlocked"]}"
+            val baseY = UI_H * 0.78f
+            layout.setText(titleFont, achTitle)
+            val titleWidth = layout.width
+            layout.setText(descFont, achDesc)
+            val descWidth = layout.width
+            layout.setText(labelFontSm, headerTxt)
+            val headerWidth = layout.width
+            val cardWidth = maxOf(titleWidth, descWidth, headerWidth) + 48f
+            val cardX = (UI_W - cardWidth) / 2f
+
+            tmpColor.set(Theme.Palette.TERTIARY).also { it.a = a }
+            labelFontSm.color = tmpColor
+            labelFontSm.draw(batch, headerTxt, cardX + (cardWidth - headerWidth) / 2f, baseY + 76f)
+
+            tmpColor.set(Theme.Palette.PRIMARY).also { it.a = a }
+            titleFont.color = tmpColor
+            titleFont.draw(batch, achTitle, cardX + (cardWidth - titleWidth) / 2f, baseY + 38f)
+
+            tmpColor.set(Theme.Palette.ON_SURFACE_VARIANT).also { it.a = a }
+            descFont.color = tmpColor
+            descFont.draw(batch, achDesc, cardX + (cardWidth - descWidth) / 2f, baseY)
+        }
+
         batch.end()
         Gdx.gl.glDisable(GL20.GL_BLEND)
 
@@ -879,6 +980,7 @@ class GameplayScreen(
         const val COMBO_DISPLAY_MIN = 2
         const val BOSS_HIT_SCORE = 75
         const val BOSS_KILL_SCORE = 5000
+        const val ACHIEVEMENT_POPUP_LIFETIME = 3.0f
 
         const val SHAKE_INTENSITY_LIGHT = 1.5f
         const val SHAKE_INTENSITY_HEAVY = 4f

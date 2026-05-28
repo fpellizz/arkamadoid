@@ -73,6 +73,13 @@ class PreferencesStore {
     fun highScoresFor(mode: String): List<SaveData.HighScoreEntry> =
         data.highScores.filter { it.mode == mode }.sortedByDescending { it.score }
 
+    /** Ritorna true se l'achievement è stato aggiunto ora (era nuovo). */
+    fun unlockAchievement(id: String): Boolean {
+        if (!data.unlockedAchievements.add(id)) return false
+        save()
+        return true
+    }
+
     companion object {
         const val KEY = "save"
     }
