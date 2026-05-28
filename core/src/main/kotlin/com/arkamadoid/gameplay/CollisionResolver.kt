@@ -53,6 +53,13 @@ object CollisionResolver {
         val dist2 = dx * dx + dy * dy
         if (dist2 > ball.radius * ball.radius) return false
 
+        // BLACKBALL: passa attraverso il brick e lo annichila (anche INDESTRUCTIBLE),
+        // niente riflesso né correzione di posizione
+        if (ball.isBlackBall) {
+            brick.hp = 0
+            return true
+        }
+
         val nx: Float
         val ny: Float
         if (dist2 > 1e-6f) {

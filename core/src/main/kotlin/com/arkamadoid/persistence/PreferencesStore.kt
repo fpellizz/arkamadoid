@@ -49,18 +49,29 @@ class PreferencesStore {
     fun dailyBestFor(dateKey: String): Int =
         if (data.dailyDate == dateKey) data.dailyBestScore else 0
 
-    /** Inserisce uno score nella top-N, ritorna il rank 1-based (0 = fuori top). */
-    fun submitScore(initials: String, score: Int, level: Int, top: Int = 10): Int {
-        val entry = SaveData.HighScoreEntry(initials, score, level)
+    /**
+     * Inserisce uno score nella top-N della modalità, ritorna il rank 1-based
+     * relativo a quella tabella (0 = fuori top).
+     */
+    fun submitScore(initials: String, score: Int, level: Int, mode: String, top: Int = 10): Int {
+        val entry = SaveData.HighScoreEntry(initials, score, level, mode)
         data.highScores.add(entry)
+        // sort globale (mode + score desc), poi tronca per ogni mode separatamente
         data.highScores.sortByDescending { it.score }
-        if (data.highScores.size > top) {
-            data.highScores.subList(top, data.highScores.size).clear()
-        }
+        val byMode = data.highScores.groupBy { it.mode }
+        val keep = mutableListOf<SaveData.HighScoreEntry>()
+        for ((_, list) in byMode) keep += list.take(top)
+        keep.sortByDescending { it.score }
+        data.highScores.clear()
+        data.highScores.addAll(keep)
         save()
-        val idx = data.highScores.indexOf(entry)
-        return if (idx >= 0) idx + 1 else 0
+        // rank nel sotto-insieme della mode
+        val rank = data.highScores.filter { it.mode == mode }.indexOf(entry)
+        return if (rank >= 0) rank + 1 else 0
     }
+
+    fun highScoresFor(mode: String): List<SaveData.HighScoreEntry> =
+        data.highScores.filter { it.mode == mode }.sortedByDescending { it.score }
 
     companion object {
         const val KEY = "save"

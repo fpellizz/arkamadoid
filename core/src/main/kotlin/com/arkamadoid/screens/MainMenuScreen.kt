@@ -29,6 +29,7 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
         Item("SCORES", Theme.Palette.SECONDARY_CONTAINER) { game.setScreen(HighScoreScreen(game)) },
         Item("SETTINGS", Theme.Palette.TERTIARY) { game.setScreen(SettingsScreen(game)) },
         Item("HOME", Theme.Palette.PRIMARY_FIXED) { game.setScreen(AttractScreen(game)) },
+        Item("EXIT", Theme.Palette.ERROR) { game.platform.exitApp() },
     )
 
     private val itemRects: List<Rectangle> = run {

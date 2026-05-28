@@ -12,6 +12,10 @@ class Ball(
     var speed: Float = GameConfig.BALL_INITIAL_SPEED
     var stuckToPaddle: Boolean = true
 
+    // BLACKBALL: secondi residui di "void mode" (attraversa e distrugge tutto, niente rimbalzi sui brick)
+    var blackBallRemaining: Float = 0f
+    val isBlackBall: Boolean get() = blackBallRemaining > 0f
+
     // afterimage trail: 4 posizioni precedenti, ring buffer
     val trailX: FloatArray = FloatArray(TRAIL_SIZE)
     val trailY: FloatArray = FloatArray(TRAIL_SIZE)

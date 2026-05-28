@@ -88,13 +88,14 @@ class GameplayScreen(
         Theme.Palette.ERROR,
     )
 
-    private val droppableTypes = arrayOf(
-        PowerUpType.EXPAND,
-        PowerUpType.SLOW,
-        PowerUpType.MULTI,
-        PowerUpType.LIFE,
-        PowerUpType.LASER,
-        PowerUpType.CATCH,
+    private val droppableWeights = listOf(
+        PowerUpType.EXPAND to 1f,
+        PowerUpType.SLOW to 1f,
+        PowerUpType.MULTI to 1f,
+        PowerUpType.LIFE to 0.5f,
+        PowerUpType.LASER to 1f,
+        PowerUpType.CATCH to 1f,
+        PowerUpType.BLACKBALL to 0.12f,
     )
 
     enum class GameMode { ARCADE, ENDLESS, DAILY, PRACTICE }
@@ -262,9 +263,11 @@ class GameplayScreen(
                 if (CollisionResolver.ballVsBrick(ball, brick)) {
                     if (!brick.alive) onBrickDestroyed(brick, level)
                     game.audio.playSfx(AudioManager.Sfx.BRICK)
-                    break
+                    // BLACKBALL: continua, distrugge tutti i brick lungo la traiettoria nello stesso step
+                    if (!ball.isBlackBall) break
                 }
             }
+            if (ball.blackBallRemaining > 0f) ball.blackBallRemaining -= dt
         }
 
         if (state.balls.isEmpty()) {
@@ -316,7 +319,7 @@ class GameplayScreen(
             droppingPowerUps += PowerUp(
                 x = brick.x + brick.width / 2f - 8f,
                 y = brick.y,
-                type = droppableTypes.random(),
+                type = pickWeightedPowerUp(),
             )
         }
         if (brick.type == Brick.Type.EXPLOSIVE) explodeAround(brick, level)
@@ -379,7 +382,20 @@ class GameplayScreen(
             PowerUpType.LASER -> state.paddle.hasLaser = true
             PowerUpType.CATCH -> state.paddle.hasCatch = true
             PowerUpType.WARP -> onLevelComplete()
+            PowerUpType.BLACKBALL -> {
+                for (b in state.balls) b.blackBallRemaining = BLACKBALL_DURATION
+            }
         }
+    }
+
+    private fun pickWeightedPowerUp(): PowerUpType {
+        val total = droppableWeights.sumOf { it.second.toDouble() }.toFloat()
+        var r = Random.nextFloat() * total
+        for ((t, w) in droppableWeights) {
+            r -= w
+            if (r <= 0f) return t
+        }
+        return droppableWeights.last().first
     }
 
     private fun spawnMultiball() {
@@ -412,7 +428,7 @@ class GameplayScreen(
                 return
             }
             disposeOnHide = true
-            game.setScreen(GameOverScreen(game, state.score, state.levelIndex))
+            game.setScreen(GameOverScreen(game, state.score, state.levelIndex, mode = mode.name))
             return
         }
         positionPaddleAndBall()
@@ -432,7 +448,7 @@ class GameplayScreen(
                 return
             }
             disposeOnHide = true
-            game.setScreen(GameOverScreen(game, state.score, state.levelIndex))
+            game.setScreen(GameOverScreen(game, state.score, state.levelIndex, mode = mode.name))
             return
         }
         state.levelIndex = next
@@ -442,7 +458,7 @@ class GameplayScreen(
     private fun recordDailyAndExit() {
         game.prefs.recordDailyScore(DailySeed.dateKey(), state.score)
         disposeOnHide = true
-        game.setScreen(GameOverScreen(game, state.score, state.levelIndex, daily = true))
+        game.setScreen(GameOverScreen(game, state.score, state.levelIndex, daily = true, mode = mode.name))
     }
 
     private fun applyShakeOffset() {
@@ -517,6 +533,7 @@ class GameplayScreen(
         PowerUpType.CATCH -> "CATCH!"
         PowerUpType.LIFE -> "EXTRA LIFE!"
         PowerUpType.WARP -> "WARP!"
+        PowerUpType.BLACKBALL -> "VOID BALL!"
     }
 
     private fun powerUpColor(type: PowerUpType): Color = when (type) {
@@ -527,6 +544,7 @@ class GameplayScreen(
         PowerUpType.CATCH -> Theme.Palette.TERTIARY
         PowerUpType.LIFE -> Color.WHITE
         PowerUpType.WARP -> Theme.Palette.PRIMARY_FIXED
+        PowerUpType.BLACKBALL -> Theme.Palette.SURFACE_CONTAINER_HIGHEST
     }
 
     private fun draw() {
@@ -548,9 +566,13 @@ class GameplayScreen(
         // bricks (con glow, 1px gap per separazione visiva)
         state.currentLevel?.bricks?.forEach { brick ->
             if (!brick.alive) return@forEach
-            val base = brickColorOf(brick)
-            val col = if (brick.hp < brick.type.hp) damagedTint.set(base).lerp(Color.WHITE, 0.35f) else base
-            PlayfieldRenderer.glowRect(shapes, brick.x + 2f, brick.y + 1.5f, brick.width - 4f, brick.height - 3f, col, cornerRadius = 1f)
+            if (brick.type == Brick.Type.INDESTRUCTIBLE) {
+                PlayfieldRenderer.steelBrick(shapes, brick.x + 1f, brick.y + 1f, brick.width - 2f, brick.height - 2f, cornerRadius = 0.5f)
+            } else {
+                val base = brickColorOf(brick)
+                val col = if (brick.hp < brick.type.hp) damagedTint.set(base).lerp(Color.WHITE, 0.35f) else base
+                PlayfieldRenderer.glowRect(shapes, brick.x + 2f, brick.y + 1.5f, brick.width - 4f, brick.height - 3f, col, cornerRadius = 1f)
+            }
         }
 
         // power-up drops (con glow)
@@ -576,10 +598,11 @@ class GameplayScreen(
             PlayfieldRenderer.glowRect(shapes, bolt.x - LaserBolt.WIDTH / 2f, bolt.y, LaserBolt.WIDTH, LaserBolt.HEIGHT, Theme.Palette.ERROR)
         }
 
-        // balls (bianche con alone magenta) + trail
+        // balls (bianche con alone magenta) + trail. BLACKBALL: variante "void"
         for (ball in state.balls) {
             PlayfieldRenderer.ballTrail(shapes, ball.trailX, ball.trailY, ball.trailHead, ball.trailCount, ball.radius)
-            PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
+            if (ball.isBlackBall) PlayfieldRenderer.glowBallVoid(shapes, ball.x, ball.y, ball.radius)
+            else PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
         }
 
         shapes.end()
@@ -594,18 +617,7 @@ class GameplayScreen(
         PlayfieldRenderer.hudCard(shapes,sectorCardRect, Theme.Palette.PRIMARY_CONTAINER, HudCardSide.BOTTOM)
         PlayfieldRenderer.hudCard(shapes,integrityCardRect, Theme.Palette.SECONDARY_FIXED_DIM, HudCardSide.RIGHT)
 
-        // vite (quadrati cyan con glow), o niente se PRACTICE (mostro INF dopo come testo)
-        if (mode != GameMode.PRACTICE) {
-            val livesShown = state.lives.coerceIn(0, 5)
-            val sizeL = 22f
-            val gap = 10f
-            val totalW = livesShown * sizeL + (livesShown - 1).coerceAtLeast(0) * gap
-            val startX = integrityCardRect.x + integrityCardRect.width - 20f - totalW
-            val ly = integrityCardRect.y + 32f
-            for (i in 0 until livesShown) {
-                PlayfieldRenderer.glowRect(shapes, startX + i * (sizeL + gap), ly, sizeL, sizeL, Theme.Palette.SECONDARY_FIXED_DIM)
-            }
-        }
+        // l'INTEGRITY come numero viene disegnato nello stage testi (sotto), niente shape qui
 
         // pause button bars
         shapes.color = Theme.Palette.PRIMARY_CONTAINER
@@ -641,17 +653,19 @@ class GameplayScreen(
         layout.setText(valueFont, sectorVal)
         valueFont.draw(batch, sectorVal, sectorCardRect.x + (sectorCardRect.width - layout.width) / 2f, sectorCardRect.y + 50f)
 
-        // INTEGRITY card (label allineato a destra)
+        // INTEGRITY card (label allineato a destra) — valore numerico
         labelFont.color = Theme.Palette.SECONDARY_FIXED_DIM
         val intLabel = "INTEGRITY"
         layout.setText(labelFont, intLabel)
         labelFont.draw(batch, intLabel, integrityCardRect.x + integrityCardRect.width - 18f - layout.width, integrityCardRect.y + integrityCardRect.height - 20f)
-        if (mode == GameMode.PRACTICE) {
-            valueFont.color = Theme.Palette.SECONDARY_FIXED_DIM
-            val infStr = "INF"
-            layout.setText(valueFont, infStr)
-            valueFont.draw(batch, infStr, integrityCardRect.x + integrityCardRect.width - 18f - layout.width, integrityCardRect.y + 50f)
+        valueFont.color = Theme.Palette.SECONDARY_FIXED_DIM
+        val intVal = when {
+            mode == GameMode.PRACTICE -> "INF"
+            state.lives <= 0 -> "00"
+            else -> "%02d".format(state.lives)
         }
+        layout.setText(valueFont, intVal)
+        valueFont.draw(batch, intVal, integrityCardRect.x + integrityCardRect.width - 18f - layout.width, integrityCardRect.y + 50f)
 
         // hint footer "SENSORS ACTIVE   SLIDE TO STEER"
         val hintFont = game.fonts[Theme.FontSize.LABEL_SM, true]
@@ -683,10 +697,26 @@ class GameplayScreen(
         if (popupTextLocal != null && popupRemaining > 0f) {
             val popupFont = game.fonts[Theme.FontSize.DISPLAY, true]
             val t = (popupRemaining / POPUP_LIFETIME).coerceIn(0f, 1f)
-            tmpColor.set(popupColor).also { it.a = (t * 2f).coerceIn(0.4f, 1f) }
-            popupFont.color = tmpColor
+            val a = (t * 2f).coerceIn(0.4f, 1f)
             layout.setText(popupFont, popupTextLocal)
-            popupFont.draw(batch, popupTextLocal, (UI_W - layout.width) / 2f, UI_H * 0.5f)
+            val px = (UI_W - layout.width) / 2f
+            val py = UI_H * 0.5f
+            // halo bianco offset 8 direzioni per leggibilità su qualunque sfondo/colore testo
+            tmpColor.set(Color.WHITE).also { it.a = a * 0.55f }
+            popupFont.color = tmpColor
+            val o = 3f
+            popupFont.draw(batch, popupTextLocal, px - o, py)
+            popupFont.draw(batch, popupTextLocal, px + o, py)
+            popupFont.draw(batch, popupTextLocal, px, py - o)
+            popupFont.draw(batch, popupTextLocal, px, py + o)
+            popupFont.draw(batch, popupTextLocal, px - o, py - o)
+            popupFont.draw(batch, popupTextLocal, px + o, py - o)
+            popupFont.draw(batch, popupTextLocal, px - o, py + o)
+            popupFont.draw(batch, popupTextLocal, px + o, py + o)
+            // testo principale sopra
+            tmpColor.set(popupColor).also { it.a = a }
+            popupFont.color = tmpColor
+            popupFont.draw(batch, popupTextLocal, px, py)
             popupFont.color = tmpColor.set(Color.WHITE)
         }
 
@@ -718,6 +748,7 @@ class GameplayScreen(
         const val PADDLE_Y = 18f
         const val POPUP_LIFETIME = 0.45f
         const val LASER_COOLDOWN = 0.20f
+        const val BLACKBALL_DURATION = 4.5f
 
         const val SHAKE_INTENSITY_LIGHT = 1.5f
         const val SHAKE_INTENSITY_HEAVY = 4f

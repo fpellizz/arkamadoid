@@ -17,6 +17,7 @@ class GameOverScreen(
     val finalScore: Int,
     val finalLevel: Int = 1,
     val daily: Boolean = false,
+    val mode: String = "ARCADE",
 ) : BaseScreen(game) {
 
     private val batch = SpriteBatch()
@@ -38,8 +39,8 @@ class GameOverScreen(
     private val confirmRect = Rectangle((VIRTUAL_W - 360f) / 2f, 180f, 360f, 110f)
 
     override fun show() {
-        if (finalScore > 0) {
-            rank = game.prefs.submitScore("___", finalScore, finalLevel)
+        if (finalScore > 0 && mode != "PRACTICE") {
+            rank = game.prefs.submitScore("___", finalScore, finalLevel, mode)
             enteringInitials = rank in 1..10
         }
         game.audio.playMusic(MusicTrack.GAME_OVER)

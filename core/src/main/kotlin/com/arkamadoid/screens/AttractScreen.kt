@@ -3,6 +3,7 @@ package com.arkamadoid.screens
 import com.arkamadoid.ArkamadoidGame
 import com.arkamadoid.config.GameConfig
 import com.arkamadoid.entities.Ball
+import com.arkamadoid.entities.Brick
 import com.arkamadoid.gameplay.CollisionResolver
 import com.arkamadoid.gameplay.GameState
 import com.arkamadoid.gameplay.LevelLoader
@@ -128,15 +129,19 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
         demoState.currentLevel?.bricks?.forEach { brick ->
             if (!brick.alive) return@forEach
-            val base = brickPalette[brick.colorIndex % brickPalette.size]
-            val col = if (brick.hp < brick.type.hp) damagedTint.set(base).lerp(Color.WHITE, 0.35f) else base
-            PlayfieldRenderer.glowRect(
-                shapes,
-                brick.x + 2f, brick.y + 1.5f,
-                brick.width - 4f, brick.height - 3f,
-                col,
-                cornerRadius = 1f,
-            )
+            if (brick.type == Brick.Type.INDESTRUCTIBLE) {
+                PlayfieldRenderer.steelBrick(shapes, brick.x + 1f, brick.y + 1f, brick.width - 2f, brick.height - 2f, cornerRadius = 0.5f)
+            } else {
+                val base = brickPalette[brick.colorIndex % brickPalette.size]
+                val col = if (brick.hp < brick.type.hp) damagedTint.set(base).lerp(Color.WHITE, 0.35f) else base
+                PlayfieldRenderer.glowRect(
+                    shapes,
+                    brick.x + 2f, brick.y + 1.5f,
+                    brick.width - 4f, brick.height - 3f,
+                    col,
+                    cornerRadius = 1f,
+                )
+            }
         }
 
         val p = demoState.paddle
@@ -157,17 +162,6 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
         PlayfieldRenderer.hudCard(shapes, scoreCardRect, Theme.Palette.TERTIARY, HudCardSide.LEFT)
         PlayfieldRenderer.hudCard(shapes, sectorCardRect, Theme.Palette.PRIMARY_CONTAINER, HudCardSide.BOTTOM)
         PlayfieldRenderer.hudCard(shapes, integrityCardRect, Theme.Palette.SECONDARY_FIXED_DIM, HudCardSide.RIGHT)
-
-        // 3 vite glow nella card INTEGRITY
-        val sizeL = 22f
-        val gap = 10f
-        val livesShown = 3
-        val totalW = livesShown * sizeL + (livesShown - 1) * gap
-        val startX = integrityCardRect.x + integrityCardRect.width - 20f - totalW
-        val ly = integrityCardRect.y + 32f
-        for (i in 0 until livesShown) {
-            PlayfieldRenderer.glowRect(shapes, startX + i * (sizeL + gap), ly, sizeL, sizeL, Theme.Palette.SECONDARY_FIXED_DIM)
-        }
 
         shapes.end()
 
@@ -196,6 +190,10 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
         val intLabel = "INTEGRITY"
         layout.setText(labelFont, intLabel)
         labelFont.draw(batch, intLabel, integrityCardRect.x + integrityCardRect.width - 18f - layout.width, integrityCardRect.y + integrityCardRect.height - 20f)
+        valueFont.color = Theme.Palette.SECONDARY_FIXED_DIM
+        val intVal = "03"
+        layout.setText(valueFont, intVal)
+        valueFont.draw(batch, intVal, integrityCardRect.x + integrityCardRect.width - 18f - layout.width, integrityCardRect.y + 50f)
 
         // footer hint identico al gameplay
         val hintFont = game.fonts[Theme.FontSize.LABEL_SM, true]

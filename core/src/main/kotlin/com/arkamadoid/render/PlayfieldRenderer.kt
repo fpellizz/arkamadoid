@@ -53,6 +53,28 @@ object PlayfieldRenderer {
         }
     }
 
+    /**
+     * Brick INDESTRUCTIBLE: base grigio acciaio con rim highlight in alto + ombra in basso
+     * per look metallico "3D", chiaramente diverso dai brick neon colorati.
+     */
+    fun steelBrick(shapes: ShapeRenderer, x: Float, y: Float, w: Float, h: Float, cornerRadius: Float = 0f) {
+        // base scura
+        shapes.color = Theme.Palette.SURFACE_CONTAINER_HIGHEST
+        if (cornerRadius <= 0f) shapes.rect(x, y, w, h) else roundedRect(shapes, x, y, w, h, cornerRadius)
+        // top rim light
+        tmp.set(Color.WHITE).also { it.a = 0.55f }
+        shapes.color = tmp
+        shapes.rect(x + 1f, y + h - 1f, (w - 2f).coerceAtLeast(0f), 1f)
+        // bottom shadow
+        tmp.set(0f, 0f, 0f, 0.55f)
+        shapes.color = tmp
+        shapes.rect(x + 1f, y, (w - 2f).coerceAtLeast(0f), 1f)
+        // left highlight
+        tmp.set(Color.WHITE).also { it.a = 0.22f }
+        shapes.color = tmp
+        shapes.rect(x, y + 1f, 1f, (h - 2f).coerceAtLeast(0f))
+    }
+
     private fun roundedRect(shapes: ShapeRenderer, x: Float, y: Float, w: Float, h: Float, r: Float) {
         val rr = r.coerceAtMost(minOf(w, h) / 2f)
         shapes.rect(x + rr, y, w - 2f * rr, h)
@@ -80,6 +102,25 @@ object PlayfieldRenderer {
         shapes.circle(cx, cy, r * 1.2f, 14)
         shapes.color = Color.WHITE
         shapes.circle(cx, cy, r, 14)
+    }
+
+    /**
+     * Variante BLACKBALL: core nero con alone magenta acceso ("void ball")
+     * — la palla diventa il negativo della normale; l'alone magenta la rende
+     * visibile su sfondo scuro.
+     */
+    fun glowBallVoid(shapes: ShapeRenderer, cx: Float, cy: Float, r: Float) {
+        tmp.set(Theme.Palette.PRIMARY_CONTAINER).also { it.a = 0.35f }
+        shapes.color = tmp
+        shapes.circle(cx, cy, r * 2.8f, 20)
+        tmp.set(Theme.Palette.PRIMARY).also { it.a = 0.50f }
+        shapes.color = tmp
+        shapes.circle(cx, cy, r * 1.8f, 18)
+        shapes.color = Color.BLACK
+        shapes.circle(cx, cy, r, 14)
+        tmp.set(Color.WHITE).also { it.a = 0.5f }
+        shapes.color = tmp
+        shapes.circle(cx - r * 0.3f, cy + r * 0.3f, r * 0.25f, 8)
     }
 
     /**

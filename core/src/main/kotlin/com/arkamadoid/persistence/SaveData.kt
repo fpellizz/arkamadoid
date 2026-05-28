@@ -21,5 +21,6 @@ data class SaveData(
         val initials: String = "AAA",
         val score: Int = 0,
         val level: Int = 1,
+        val mode: String = "ARCADE",
     )
 }
