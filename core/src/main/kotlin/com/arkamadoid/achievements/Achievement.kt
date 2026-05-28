@@ -5,12 +5,12 @@ package com.arkamadoid.achievements
  * (mapparli sui veri achievement_id del Play Games Console quando configurato).
  * Titolo/descrizione visibili sono via I18n con chiave "achievement.{id}.title|desc".
  */
-enum class Achievement(val id: String) {
+enum class Achievement(val id: String, val hidden: Boolean = false) {
     FIRST_BRICK("first_brick"),
     COMBO_X2("combo_x2"),
     COMBO_X4("combo_x4"),
     BOSS_FIRST("boss_first"),
-    BOSS_FINAL("boss_final"),
+    BOSS_FINAL("boss_final", hidden = true),
     PIXEL_PERFECT("pixel_perfect"),
     NO_POWER("no_power"),
     ENDLESS_30("endless_30"),

@@ -919,7 +919,7 @@ class GameplayScreen(
             val titleFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
             val descFont = game.fonts[Theme.FontSize.BODY_MD]
 
-            val headerTxt = "★ ${I18n["achievement.unlocked"]}"
+            val headerTxt = "[*] ${I18n["achievement.unlocked"]}"
             val baseY = UI_H * 0.78f
             layout.setText(titleFont, achTitle)
             val titleWidth = layout.width
