@@ -627,6 +627,24 @@ class GameplayScreen(
     private fun brickColorOf(brick: Brick): Color =
         brickPalette[brick.colorIndex % brickPalette.size]
 
+    /**
+     * Disegna la lettera identificativa del power-up (codice della pill) dentro
+     * il pill stesso, in nero, usando un bitmap font 3x5 composto di 1x1 rect.
+     * Va chiamato durante il loop power-up dentro shapes.begin(Filled).
+     */
+    private fun drawPowerUpGlyph(pu: PowerUp) {
+        val pattern = POWERUP_GLYPHS[pu.type.code] ?: return
+        shapes.color = Color.BLACK
+        // pill 16x8, glyph 3x5: centro orizzontale a x+6.5, top at pu.y+6 (bottom at pu.y+1)
+        val baseX = pu.x + 6.5f
+        val baseTopY = pu.y + 6f
+        for (cell in pattern) {
+            val col = cell shr 4
+            val row = cell and 0xF
+            shapes.rect(baseX + col, baseTopY - row, 1f, 1f)
+        }
+    }
+
     private fun comboMultiplier(c: Int): Int = when {
         c >= COMBO_TIER_4 -> 4
         c >= COMBO_TIER_3 -> 3
@@ -719,15 +737,43 @@ class GameplayScreen(
             }
         }
 
-        // boss (grosso glowRect magenta + HP bar sopra) — disegnato dopo i brick
+        // boss: corpo magenta + armor plate centrale + 2 occhi + chevron in basso + HP bar
         state.currentLevel?.boss?.let { boss ->
             if (boss.alive) {
                 val hpRatio = boss.hp.toFloat() / boss.maxHp.toFloat().coerceAtLeast(1f)
                 val damaged = hpRatio < 0.4f
                 val bossCol = if (damaged) damagedTint.set(Theme.Palette.PRIMARY_CONTAINER).lerp(Color.WHITE, 0.4f)
                                else Theme.Palette.PRIMARY_CONTAINER
+
+                // corpo principale (capsule magenta con halo)
                 PlayfieldRenderer.glowRect(shapes, boss.x, boss.y, boss.width, boss.height, bossCol, cornerRadius = 2f)
-                // HP bar 2px sopra il boss, larga quanto il boss
+
+                // armor plate centrale (un rettangolo più piccolo, colore PRIMARY più chiaro)
+                val plateInset = 4f
+                val plateH = boss.height - plateInset * 2f
+                val plateW = boss.width * 0.55f
+                shapes.color = if (damaged) Theme.Palette.PRIMARY_FIXED else Theme.Palette.NEON_MAGENTA
+                shapes.rect(boss.centerX() - plateW / 2f, boss.y + plateInset, plateW, plateH)
+
+                // occhi: 2 piccoli rettangoli orizzontali nel terzo superiore del boss
+                val eyeY = boss.y + boss.height * 0.62f
+                val eyeH = 3f
+                val eyeW = 5f
+                val eyeOffset = boss.width * 0.18f
+                val eyeColor = if (damaged) Theme.Palette.ERROR else Theme.Palette.NEON_YELLOW
+                shapes.color = eyeColor
+                shapes.rect(boss.centerX() - eyeOffset - eyeW, eyeY, eyeW, eyeH)
+                shapes.rect(boss.centerX() + eyeOffset, eyeY, eyeW, eyeH)
+
+                // chevron centrale in basso: due triangolini con rects sottili
+                val chY = boss.y + 1f
+                val chW = 3f
+                val chH = 2f
+                shapes.color = if (damaged) Theme.Palette.SECONDARY_FIXED_DIM else Theme.Palette.SECONDARY_FIXED
+                shapes.rect(boss.centerX() - chW * 2f - 1f, chY, chW, chH)
+                shapes.rect(boss.centerX() + 1f, chY, chW, chH)
+
+                // HP bar 2px sopra il boss
                 val barY = boss.y + boss.height + 3f
                 shapes.color = Theme.Palette.SURFACE_CONTAINER_HIGH
                 shapes.rect(boss.x, barY, boss.width, 2f)
@@ -736,9 +782,10 @@ class GameplayScreen(
             }
         }
 
-        // power-up drops (con glow)
+        // power-up drops (con glow + lettera identificativa)
         for (pu in droppingPowerUps) {
             PlayfieldRenderer.glowRect(shapes, pu.x, pu.y, 16f, 8f, powerUpColor(pu.type))
+            drawPowerUpGlyph(pu)
         }
 
         // particles
@@ -981,6 +1028,22 @@ class GameplayScreen(
         const val BOSS_HIT_SCORE = 75
         const val BOSS_KILL_SCORE = 5000
         const val ACHIEVEMENT_POPUP_LIFETIME = 3.0f
+
+        /**
+         * Bitmap font 3x5 dei codici power-up. Cell encoding: byte con high nibble
+         * = col (0-2), low nibble = row (0-4). Disegnato dentro la pill 16x8.
+         */
+        private val POWERUP_GLYPHS: Map<Char, IntArray> = mapOf(
+            'E' to intArrayOf(0x00, 0x10, 0x20, 0x01, 0x02, 0x12, 0x03, 0x04, 0x14, 0x24),
+            'S' to intArrayOf(0x00, 0x10, 0x20, 0x01, 0x02, 0x12, 0x22, 0x23, 0x04, 0x14, 0x24),
+            'L' to intArrayOf(0x00, 0x01, 0x02, 0x03, 0x04, 0x14, 0x24),
+            'M' to intArrayOf(0x00, 0x20, 0x01, 0x11, 0x21, 0x02, 0x22, 0x03, 0x23, 0x04, 0x24),
+            'C' to intArrayOf(0x00, 0x10, 0x20, 0x01, 0x02, 0x03, 0x04, 0x14, 0x24),
+            '1' to intArrayOf(0x10, 0x01, 0x11, 0x12, 0x13, 0x04, 0x14, 0x24),
+            'W' to intArrayOf(0x00, 0x20, 0x01, 0x21, 0x02, 0x22, 0x03, 0x13, 0x23, 0x14),
+            'B' to intArrayOf(0x00, 0x10, 0x01, 0x21, 0x02, 0x12, 0x03, 0x23, 0x04, 0x14),
+            'Z' to intArrayOf(0x00, 0x10, 0x20, 0x21, 0x12, 0x03, 0x04, 0x14, 0x24),
+        )
 
         const val SHAKE_INTENSITY_LIGHT = 1.5f
         const val SHAKE_INTENSITY_HEAVY = 4f
