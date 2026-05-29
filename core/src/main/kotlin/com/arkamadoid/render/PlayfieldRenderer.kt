@@ -150,7 +150,8 @@ object PlayfieldRenderer {
             val idx = ((head - count + i) % size + size) % size
             val age = (count - 1 - i)  // 0 = più recente, count-1 = più vecchio
             val ageT = age.toFloat() / count
-            val alpha = (1f - ageT) * 0.25f
+            // effetto coda di cometa: alpha peak alto, decay rapido
+            val alpha = (1f - ageT) * 0.55f
             if (alpha <= 0.01f) continue
             tmp.set(Color.WHITE).also { it.a = alpha }
             shapes.color = tmp
