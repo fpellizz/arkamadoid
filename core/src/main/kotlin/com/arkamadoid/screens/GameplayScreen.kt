@@ -60,6 +60,7 @@ class GameplayScreen(
     private val tmpColor = Color()
     private val pauseRect = Rectangle(UI_W - 170f, 40f, 130f, 100f)
     private val zeroGravRect = Rectangle(40f, 40f, 130f, 100f)
+    private val dajeRect = Rectangle((UI_W - 260f) / 2f, 40f, 260f, 100f)
     private val scoreCardRect = Rectangle(40f, UI_H - 200f, 220f, 130f)
     private val sectorCardRect = Rectangle((UI_W - 200f) / 2f, UI_H - 200f, 200f, 130f)
     private val integrityCardRect = Rectangle(UI_W - 260f, UI_H - 200f, 220f, 130f)
@@ -86,6 +87,10 @@ class GameplayScreen(
     // transizione di livello: fade-out + burst + load + fade-in
     private var levelTransitionRemaining = 0f
     private var levelTransitionPendingIndex = -1
+
+    /** Una palla è "stuck orizzontale" se da > 12s viaggia con quasi-zero vy. */
+    private val dajeVisible: Boolean
+        get() = state.balls.any { !it.stuckToPaddle && it.horizontalStuckTime > HORIZONTAL_STUCK_THRESHOLD }
 
     private var shakeMagnitude = 0f
     private var shakeRemaining = 0f
@@ -248,6 +253,10 @@ class GameplayScreen(
                 game.audio.playSfx(AudioManager.Sfx.POWERUP, pitch = if (practiceZeroGEnabled) 1.2f else 0.8f)
                 return
             }
+            if (dajeVisible && dajeRect.contains(tmpUi.x, tmpUi.y)) {
+                recallBalls()
+                return
+            }
             if (skipSectorRect.contains(tmpUi.x, tmpUi.y)) {
                 val now = TimeUtils.nanoTime()
                 if (now - lastSkipTapAt < 400_000_000L) {
@@ -352,6 +361,19 @@ class GameplayScreen(
             }
 
             if (ball.blackBallRemaining > 0f) ball.blackBallRemaining -= dt
+
+            // accumula timer "quasi orizzontale" per il bottone DAJE!
+            if (!ball.stuckToPaddle) {
+                val v = ball.velocity.len()
+                val vyAbs = kotlin.math.abs(ball.velocity.y)
+                if (v > 0.001f && vyAbs / v < HORIZONTAL_STUCK_VY_RATIO) {
+                    ball.horizontalStuckTime += dt
+                } else {
+                    ball.horizontalStuckTime = 0f
+                }
+            } else {
+                ball.horizontalStuckTime = 0f
+            }
         }
 
         level.boss?.takeIf { it.alive }?.update(dt)
@@ -614,6 +636,24 @@ class GameplayScreen(
             levelTransitionRemaining = 0f
             levelTransitionPendingIndex = -1
         }
+    }
+
+    /**
+     * Richiama tutte le palle al paddle: posizione stuck, velocità zero, trail
+     * pulito. Usato dal bottone DAJE! quando la palla si è bloccata in un loop
+     * orizzontale.
+     */
+    private fun recallBalls() {
+        val p = state.paddle
+        for (b in state.balls) {
+            b.x = p.x + p.width / 2f
+            b.y = p.y + p.height + b.radius + 1f
+            b.velocity.set(0f, 0f)
+            b.stuckToPaddle = true
+            b.horizontalStuckTime = 0f
+            b.clearTrail()
+        }
+        game.audio.playSfx(AudioManager.Sfx.POWERUP, pitch = 1.5f)
     }
 
     /** Fuochi d'artificio multi-punto + screen shake per celebrare la fine del livello. */
@@ -916,6 +956,20 @@ class GameplayScreen(
         shapes.rect(cx - barW - 8f, cy - barH / 2f, barW, barH)
         shapes.rect(cx + 8f, cy - barH / 2f, barW, barH)
 
+        // bottone DAJE!: bordo verde glow + sfondo semi-trasparente come hud card
+        if (dajeVisible) {
+            tmpColor.set(Theme.Palette.SURFACE_CONTAINER_LOW).also { it.a = 0.85f }
+            shapes.color = tmpColor
+            shapes.rect(dajeRect.x, dajeRect.y, dajeRect.width, dajeRect.height)
+            // 4 barre verdi che fanno da bordo (no Line mode disponibile qui, siamo in Filled)
+            val t = 3f
+            shapes.color = Theme.Palette.NEON_GREEN
+            shapes.rect(dajeRect.x, dajeRect.y, dajeRect.width, t)                                  // bottom
+            shapes.rect(dajeRect.x, dajeRect.y + dajeRect.height - t, dajeRect.width, t)            // top
+            shapes.rect(dajeRect.x, dajeRect.y, t, dajeRect.height)                                 // left
+            shapes.rect(dajeRect.x + dajeRect.width - t, dajeRect.y, t, dajeRect.height)            // right
+        }
+
         shapes.end()
 
         // text overlay
@@ -978,12 +1032,26 @@ class GameplayScreen(
             )
         }
 
-        // hint footer "SENSORS ACTIVE   SLIDE TO STEER"
-        val hintFont = game.fonts[Theme.FontSize.LABEL_SM, true]
-        hintFont.color = Theme.Palette.SECONDARY_FIXED_DIM
-        val hint = "SENSORS ACTIVE   SLIDE TO STEER"
-        layout.setText(hintFont, hint)
-        hintFont.draw(batch, hint, (UI_W - layout.width) / 2f, 80f)
+        // hint footer "SENSORS ACTIVE   SLIDE TO STEER" — nascosto se è visibile il DAJE
+        if (!dajeVisible) {
+            val hintFont = game.fonts[Theme.FontSize.LABEL_SM, true]
+            hintFont.color = Theme.Palette.SECONDARY_FIXED_DIM
+            val hint = "SENSORS ACTIVE   SLIDE TO STEER"
+            layout.setText(hintFont, hint)
+            hintFont.draw(batch, hint, (UI_W - layout.width) / 2f, 80f)
+        } else {
+            // bottone DAJE!: testo verde grande, centrato dentro al rect
+            val dajeFont = game.fonts[Theme.FontSize.HEADLINE, true]
+            dajeFont.color = Theme.Palette.NEON_GREEN
+            val dajeTxt = "DAJE!"
+            layout.setText(dajeFont, dajeTxt)
+            dajeFont.draw(
+                batch,
+                dajeTxt,
+                dajeRect.x + (dajeRect.width - layout.width) / 2f,
+                dajeRect.y + (dajeRect.height + layout.height) / 2f,
+            )
+        }
 
         // marker DAILY (sostituisce il SECTOR number nel HUD-top? no: aggiungo sopra il SECTOR card)
         if (mode == GameMode.DAILY) {
@@ -1130,6 +1198,8 @@ class GameplayScreen(
         const val BOSS_KILL_SCORE = 5000
         const val ACHIEVEMENT_POPUP_LIFETIME = 3.0f
         const val LEVEL_TRANSITION_DURATION = 1.0f
+        const val HORIZONTAL_STUCK_THRESHOLD = 12.0f
+        const val HORIZONTAL_STUCK_VY_RATIO = 0.15f
 
         /** Tracce gameplay ciclate per dare varietà di livello in livello. */
         private val GAMEPLAY_TRACKS = arrayOf(
