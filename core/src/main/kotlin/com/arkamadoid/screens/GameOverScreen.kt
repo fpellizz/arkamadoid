@@ -21,6 +21,7 @@ class GameOverScreen(
     val finalLevel: Int = 1,
     val daily: Boolean = false,
     val mode: String = "ARCADE",
+    val bestCombo: Int = 0,
 ) : BaseScreen(game) {
 
     private val batch = SpriteBatch()
@@ -116,6 +117,14 @@ class GameOverScreen(
             val rankLine = "${I18n["gameOver.newHighScore"]}  #%02d  ${I18n["gameOver.as"]}  %s".format(rank, String(initials))
             layout.setText(rankFont, rankLine)
             rankFont.draw(batch, rankLine, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 60f)
+        }
+
+        if (bestCombo >= 2) {
+            val comboFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
+            comboFont.color = Theme.Palette.PRIMARY_CONTAINER
+            val comboLine = "${I18n["gameOver.bestCombo"]}  ×%02d".format(bestCombo)
+            layout.setText(comboFont, comboLine)
+            comboFont.draw(batch, comboLine, (VIRTUAL_W - layout.width) / 2f, VIRTUAL_H / 2f - 105f)
         }
 
         // countdown 9..1 prima del ritorno al menu

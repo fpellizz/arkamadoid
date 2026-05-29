@@ -28,4 +28,6 @@
     <string name="gpgs_achievement_no_power" translatable="false"></string>
     <string name="gpgs_achievement_endless_30" translatable="false"></string>
     <string name="gpgs_achievement_centurion" translatable="false"></string>
+    <string name="gpgs_achievement_daily_3" translatable="false"></string>
+    <string name="gpgs_achievement_daily_7" translatable="false"></string>
 </resources>

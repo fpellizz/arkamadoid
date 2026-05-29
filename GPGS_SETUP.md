@@ -73,6 +73,8 @@ Play Games Services → **Achievement → Add achievement**. Per ognuno:
 | `no_power`       | Purist           | Purista            | Clear a sector without picking power-ups  | Completa un settore senza raccogliere power-up     | Standard    | No |
 | `endless_30`     | Deep Runner      | Esploratore        | Reach sector 30 in ENDLESS                | Raggiungi il settore 30 in ENDLESS                 | Standard    | No |
 | `centurion`      | Centurion        | Centurione         | Score 100,000 in a single run             | Totalizza 100.000 punti in una singola run         | Standard    | No |
+| `daily_3`        | Daily Habit      | Abitudine Quotidiana | Play DAILY 3 days in a row              | Gioca la Daily Challenge 3 giorni di seguito       | Standard    | No |
+| `daily_7`        | Daily Devotee    | Devoto Quotidiano  | Play DAILY 7 days in a row                | Gioca la Daily Challenge 7 giorni di seguito       | Standard    | No |
 
 Per ognuno Play Console ti dà un **achievement ID** in formato `CgkI...`. Incollali:
 
@@ -86,6 +88,8 @@ Per ognuno Play Console ti dà un **achievement ID** in formato `CgkI...`. Incol
 <string name="gpgs_achievement_no_power"      translatable="false">CgkI__________________</string>
 <string name="gpgs_achievement_endless_30"    translatable="false">CgkI__________________</string>
 <string name="gpgs_achievement_centurion"     translatable="false">CgkI__________________</string>
+<string name="gpgs_achievement_daily_3"       translatable="false">CgkI__________________</string>
+<string name="gpgs_achievement_daily_7"       translatable="false">CgkI__________________</string>
 ```
 
 ## 5. Tester e pubblicazione
