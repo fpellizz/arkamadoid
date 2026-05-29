@@ -331,7 +331,7 @@ class GameplayScreen(
             // boss hit: dopo il loop brick (così non interferisce con BLACKBALL chain)
             val boss = level.boss
             if (boss != null && boss.alive && CollisionResolver.ballVsBoss(ball, boss)) {
-                state.combo += 1
+                bumpCombo()
                 state.score += BOSS_HIT_SCORE * comboMultiplier(state.combo)
                 checkComboAchievements()
                 checkScoreAchievements()
@@ -383,7 +383,7 @@ class GameplayScreen(
     }
 
     private fun onBrickDestroyed(brick: Brick, level: Level) {
-        state.combo += 1
+        bumpCombo()
         state.score += brick.type.score * comboMultiplier(state.combo)
         tryUnlockAchievement(Achievement.FIRST_BRICK)
         checkComboAchievements()
@@ -434,7 +434,7 @@ class GameplayScreen(
         game.audio.playSfx(AudioManager.Sfx.BRICK, pitch = 0.5f)
         haptic(HAPTIC_LIFE_LOST_MS)
         triggerPickupPopup(PowerUpType.MULTI) // riusa il popup, ma override del testo subito sotto
-        popupText = "BOSS CLEARED"
+        popupText = I18n["gameplay.bossCleared"]
         popupColor.set(Theme.Palette.PRIMARY_CONTAINER)
     }
 
@@ -451,7 +451,7 @@ class GameplayScreen(
             if (b.type == Brick.Type.INDESTRUCTIBLE) continue
             if (!b.bounds.overlaps(r)) continue
             b.hp = 0
-            state.combo += 1
+            bumpCombo()
             state.score += b.type.score * comboMultiplier(state.combo)
             checkComboAchievements()
             checkScoreAchievements()
@@ -550,7 +550,7 @@ class GameplayScreen(
                 return
             }
             disposeOnHide = true
-            game.setScreen(GameOverScreen(game, state.score, state.levelIndex, mode = mode.name))
+            game.setScreen(GameOverScreen(game, state.score, state.levelIndex, mode = mode.name, bestCombo = state.bestComboThisRun))
             return
         }
         positionPaddleAndBall()
@@ -571,7 +571,7 @@ class GameplayScreen(
         if (!handle.exists() && mode != GameMode.ENDLESS) {
             // modalità che terminano alla fine dei livelli hand-crafted (ARCADE, PRACTICE)
             disposeOnHide = true
-            game.setScreen(GameOverScreen(game, state.score, state.levelIndex, mode = mode.name))
+            game.setScreen(GameOverScreen(game, state.score, state.levelIndex, mode = mode.name, bestCombo = state.bestComboThisRun))
             return
         }
         state.levelIndex = next
@@ -580,8 +580,11 @@ class GameplayScreen(
 
     private fun recordDailyAndExit() {
         game.prefs.recordDailyScore(DailySeed.dateKey(), state.score)
+        val streak = game.prefs.dailyStreak
+        if (streak >= 3) tryUnlockAchievement(Achievement.DAILY_3)
+        if (streak >= 7) tryUnlockAchievement(Achievement.DAILY_7)
         disposeOnHide = true
-        game.setScreen(GameOverScreen(game, state.score, state.levelIndex, daily = true, mode = mode.name))
+        game.setScreen(GameOverScreen(game, state.score, state.levelIndex, daily = true, mode = mode.name, bestCombo = state.bestComboThisRun))
     }
 
     private fun applyShakeOffset() {
@@ -650,6 +653,11 @@ class GameplayScreen(
         c >= COMBO_TIER_3 -> 3
         c >= COMBO_TIER_2 -> 2
         else -> 1
+    }
+
+    private fun bumpCombo() {
+        state.combo += 1
+        if (state.combo > state.bestComboThisRun) state.bestComboThisRun = state.combo
     }
 
     private fun checkComboAchievements() {

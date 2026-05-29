@@ -41,9 +41,18 @@ class PreferencesStore {
         } else if (score > data.dailyBestScore) {
             data.dailyBestScore = score
         }
+        // streak: solo se è la prima volta che giochi oggi
+        if (data.dailyStreakDate != dateKey) {
+            val yesterday = java.time.LocalDate.parse(dateKey).minusDays(1).toString()
+            data.dailyStreak = if (data.dailyStreakDate == yesterday) data.dailyStreak + 1 else 1
+            data.dailyStreakDate = dateKey
+        }
         save()
         return data.dailyBestScore
     }
+
+    /** Streak corrente di Daily Challenge consecutivi (0 se mai giocato o interrotto). */
+    val dailyStreak: Int get() = data.dailyStreak
 
     /** Best score del giorno se la data combacia, altrimenti 0. */
     fun dailyBestFor(dateKey: String): Int =

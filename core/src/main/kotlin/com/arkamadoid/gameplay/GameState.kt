@@ -10,6 +10,7 @@ class GameState {
     var score: Int = 0
     var levelIndex: Int = 1
     var combo: Int = 0
+    var bestComboThisRun: Int = 0
 
     val paddle: Paddle = Paddle()
     val balls: MutableList<Ball> = mutableListOf(Ball())

@@ -15,4 +15,6 @@ enum class Achievement(val id: String, val hidden: Boolean = false) {
     NO_POWER("no_power"),
     ENDLESS_30("endless_30"),
     CENTURION("centurion"),
+    DAILY_3("daily_3"),
+    DAILY_7("daily_7"),
 }

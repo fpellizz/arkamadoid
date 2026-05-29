@@ -98,13 +98,13 @@ class AchievementsScreen(game: ArkamadoidGame) : BaseScreen(game) {
             }
             val titleStr = if (showAsLocked) I18n["achievement.locked.title"]
                            else I18n["achievement.${ach.id}.title"]
-            titleFont.draw(batch, titleStr, r.x + 110f, r.y + r.height - 24f)
+            titleFont.draw(batch, titleStr, r.x + 110f, r.y + r.height - 18f)
 
             // desc sotto al title
             descFont.color = Theme.Palette.ON_SURFACE_VARIANT
             val descStr = if (showAsLocked) I18n["achievement.locked.desc"]
                           else I18n["achievement.${ach.id}.desc"]
-            descFont.draw(batch, descStr, r.x + 110f, r.y + r.height - 56f)
+            descFont.draw(batch, descStr, r.x + 110f, r.y + 18f)
         }
 
         val backFont = game.fonts[Theme.FontSize.BODY_MD, true]
@@ -141,7 +141,7 @@ class AchievementsScreen(game: ArkamadoidGame) : BaseScreen(game) {
     companion object {
         const val VIRTUAL_W = 720f
         const val VIRTUAL_H = 1280f
-        const val ROW_H = 90f
-        const val GAP = 10f
+        const val ROW_H = 70f
+        const val GAP = 8f
     }
 }

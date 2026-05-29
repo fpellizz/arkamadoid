@@ -17,6 +17,8 @@ data class SaveData(
     var language: String = "auto",
     var dailyDate: String = "",
     var dailyBestScore: Int = 0,
+    var dailyStreak: Int = 0,
+    var dailyStreakDate: String = "",
 ) {
     data class HighScoreEntry(
         val initials: String = "AAA",
