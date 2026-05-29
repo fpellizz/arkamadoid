@@ -98,14 +98,8 @@ class GameplayScreen(
     private var accumulator = 0f
     private var lastTouchX = -1f
 
-    private val brickPalette = arrayOf(
-        Theme.Palette.SECONDARY_FIXED_DIM,
-        Theme.Palette.PRIMARY_CONTAINER,
-        Theme.Palette.TERTIARY,
-        Theme.Palette.SECONDARY_FIXED,
-        Theme.Palette.PRIMARY_FIXED,
-        Theme.Palette.ERROR,
-    )
+    private val brickPalette: Array<Color>
+        get() = game.prefs.currentPaletteSkin().colors
 
     private val droppableWeights = listOf(
         PowerUpType.EXPAND to 1f,
@@ -799,9 +793,9 @@ class GameplayScreen(
         // particles
         particles.render(shapes)
 
-        // paddle (capsule cyan con inner highlight)
+        // paddle (capsule con colore della skin selezionata)
         val p = state.paddle
-        PlayfieldRenderer.capsule(shapes, p.x, p.y, p.width, p.height, Theme.Palette.SECONDARY_CONTAINER)
+        PlayfieldRenderer.capsule(shapes, p.x, p.y, p.width, p.height, game.prefs.currentPaddleSkin().color)
 
         // cannoni laser sui lati del paddle se hasLaser è attivo
         if (p.hasLaser) {
@@ -814,11 +808,12 @@ class GameplayScreen(
             PlayfieldRenderer.glowRect(shapes, bolt.x - LaserBolt.WIDTH / 2f, bolt.y, LaserBolt.WIDTH, LaserBolt.HEIGHT, Theme.Palette.ERROR)
         }
 
-        // balls (bianche con alone magenta) + trail. BLACKBALL: variante "void"
+        // balls + trail. BLACKBALL: variante "void". Altrimenti skin selezionata.
+        val ballSkin = game.prefs.currentBallSkin()
         for (ball in state.balls) {
             PlayfieldRenderer.ballTrail(shapes, ball.trailX, ball.trailY, ball.trailHead, ball.trailCount, ball.radius)
             if (ball.isBlackBall) PlayfieldRenderer.glowBallVoid(shapes, ball.x, ball.y, ball.radius)
-            else PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
+            else PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius, ballSkin.core, ballSkin.halo)
         }
 
         shapes.end()

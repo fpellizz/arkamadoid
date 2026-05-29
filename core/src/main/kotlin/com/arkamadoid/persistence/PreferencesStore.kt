@@ -1,5 +1,9 @@
 package com.arkamadoid.persistence
 
+import com.arkamadoid.achievements.Achievement
+import com.arkamadoid.skins.BallSkin
+import com.arkamadoid.skins.PaddleSkin
+import com.arkamadoid.skins.PaletteSkin
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.utils.Json
 import com.badlogic.gdx.utils.JsonWriter
@@ -85,8 +89,48 @@ class PreferencesStore {
     /** Ritorna true se l'achievement è stato aggiunto ora (era nuovo). */
     fun unlockAchievement(id: String): Boolean {
         if (!data.unlockedAchievements.add(id)) return false
+        // auto-unlock skin linkate a questo achievement
+        val ach = Achievement.values().firstOrNull { it.id == id }
+        if (ach != null) {
+            PaddleSkin.values().filter { it.unlockAchievement == ach }.forEach { data.unlockedSkins.add(it.id) }
+            BallSkin.values().filter { it.unlockAchievement == ach }.forEach { data.unlockedSkins.add(it.id) }
+            PaletteSkin.values().filter { it.unlockAchievement == ach }.forEach { data.unlockedSkins.add(it.id) }
+        }
         save()
         return true
+    }
+
+    /** Default sempre disponibili, gli altri vanno guardati in unlockedSkins. */
+    fun isSkinUnlocked(skinId: String): Boolean {
+        if (skinId.endsWith("_default")) return true
+        return skinId in data.unlockedSkins
+    }
+
+    fun currentPaddleSkin(): PaddleSkin =
+        PaddleSkin.values().firstOrNull { it.id == data.selectedPaddleSkin } ?: PaddleSkin.DEFAULT
+
+    fun currentBallSkin(): BallSkin =
+        BallSkin.values().firstOrNull { it.id == data.selectedBallSkin } ?: BallSkin.DEFAULT
+
+    fun currentPaletteSkin(): PaletteSkin =
+        PaletteSkin.values().firstOrNull { it.id == data.selectedPaletteSkin } ?: PaletteSkin.DEFAULT
+
+    fun selectPaddleSkin(skin: PaddleSkin) {
+        if (!isSkinUnlocked(skin.id)) return
+        data.selectedPaddleSkin = skin.id
+        save()
+    }
+
+    fun selectBallSkin(skin: BallSkin) {
+        if (!isSkinUnlocked(skin.id)) return
+        data.selectedBallSkin = skin.id
+        save()
+    }
+
+    fun selectPaletteSkin(skin: PaletteSkin) {
+        if (!isSkinUnlocked(skin.id)) return
+        data.selectedPaletteSkin = skin.id
+        save()
     }
 
     companion object {

@@ -1,11 +1,17 @@
 package com.arkamadoid.screens
 
 import com.arkamadoid.ArkamadoidGame
+import com.arkamadoid.achievements.Achievement
+import com.arkamadoid.audio.AudioManager
 import com.arkamadoid.audio.MusicTrack
 import com.arkamadoid.config.GameConfig
 import com.arkamadoid.localization.I18n
 import com.arkamadoid.net.UpdateChecker
+import com.arkamadoid.skins.BallSkin
+import com.arkamadoid.skins.PaddleSkin
+import com.arkamadoid.skins.PaletteSkin
 import com.arkamadoid.theme.Theme
+import com.badlogic.gdx.utils.TimeUtils
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
@@ -30,10 +36,17 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
     private val updateBannerRect = Rectangle(60f, VIRTUAL_H - 70f, VIRTUAL_W - 120f, 70f)
     private var updateChecked = false
 
+    // cheat "sblocca tutto": 5 tap rapidi sulla riga della versione in basso
+    private val cheatFooterRect = Rectangle(0f, 0f, VIRTUAL_W, 80f)
+    private var cheatTaps = 0
+    private var cheatLastTapAt = 0L
+    private var cheatFlashRemaining = 0f
+
     private val items = listOf(
         Item(I18n["menu.play"], Theme.Palette.PRIMARY_CONTAINER) { game.setScreen(ModeSelectScreen(game)) },
         Item(I18n["menu.scores"], Theme.Palette.SECONDARY_CONTAINER) { game.setScreen(HighScoreScreen(game)) },
         Item(I18n["menu.achievements"], Theme.Palette.NEON_GREEN) { game.setScreen(AchievementsScreen(game)) },
+        Item(I18n["menu.skins"], Theme.Palette.PRIMARY_FIXED_DIM) { game.setScreen(SkinsScreen(game)) },
         Item(I18n["menu.settings"], Theme.Palette.TERTIARY) { game.setScreen(SettingsScreen(game)) },
         Item(I18n["menu.home"], Theme.Palette.PRIMARY_FIXED) { game.setScreen(AttractScreen(game)) },
         Item(I18n["menu.exit"], Theme.Palette.ERROR) { game.platform.exitApp() },
@@ -120,6 +133,18 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
 
         com.arkamadoid.render.BezelFrame.draw(shapes, viewport, VIRTUAL_W, VIRTUAL_H)
 
+        // cheat flash: piccolo testo sopra la riga versione quando si attiva
+        if (cheatFlashRemaining > 0f) {
+            cheatFlashRemaining -= delta
+            batch.begin()
+            val flashFont = game.fonts[Theme.FontSize.HEADLINE_MOBILE, true]
+            flashFont.color = Theme.Palette.NEON_GREEN
+            val flashTxt = "[CHEAT] ALL UNLOCKED"
+            layout.setText(flashFont, flashTxt)
+            flashFont.draw(batch, flashTxt, (VIRTUAL_W - layout.width) / 2f, 90f)
+            batch.end()
+        }
+
         if (Gdx.input.justTouched() && elapsed > 0.15f) {
             idleTime = 0f
             tmp.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat(), 0f)
@@ -135,7 +160,28 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
                     return
                 }
             }
+            // cheat: 5 tap rapidi (< 500ms tra uno e l'altro) sulla riga versione
+            if (cheatFooterRect.contains(tmp.x, tmp.y)) {
+                val now = TimeUtils.nanoTime()
+                cheatTaps = if (now - cheatLastTapAt < 500_000_000L) cheatTaps + 1 else 1
+                cheatLastTapAt = now
+                if (cheatTaps >= 5) {
+                    cheatTaps = 0
+                    activateUnlockAllCheat()
+                }
+            }
         }
+    }
+
+    private fun activateUnlockAllCheat() {
+        Achievement.values().forEach { game.prefs.unlockAchievement(it.id) }
+        // unlockAchievement copre già le skin linkate, ma forziamo anche le altre
+        PaddleSkin.values().forEach { game.prefs.data.unlockedSkins.add(it.id) }
+        BallSkin.values().forEach { game.prefs.data.unlockedSkins.add(it.id) }
+        PaletteSkin.values().forEach { game.prefs.data.unlockedSkins.add(it.id) }
+        game.prefs.save()
+        game.audio.playSfx(AudioManager.Sfx.COIN, pitch = 2.0f)
+        cheatFlashRemaining = 2.5f
     }
 
     override fun resize(width: Int, height: Int) {
@@ -155,7 +201,7 @@ class MainMenuScreen(game: ArkamadoidGame) : BaseScreen(game) {
         const val VIRTUAL_W = 720f
         const val VIRTUAL_H = 1280f
         const val BTN_W = 480f
-        const val BTN_H = 120f
-        const val GAP = 30f
+        const val BTN_H = 100f
+        const val GAP = 24f
     }
 }

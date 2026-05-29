@@ -41,14 +41,8 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
     private val sectorCardRect = Rectangle((VIRTUAL_W - 200f) / 2f, VIRTUAL_H - 200f, 200f, 130f)
     private val integrityCardRect = Rectangle(VIRTUAL_W - 260f, VIRTUAL_H - 200f, 220f, 130f)
 
-    private val brickPalette = arrayOf(
-        Theme.Palette.SECONDARY_FIXED_DIM,
-        Theme.Palette.PRIMARY_CONTAINER,
-        Theme.Palette.TERTIARY,
-        Theme.Palette.SECONDARY_FIXED,
-        Theme.Palette.PRIMARY_FIXED,
-        Theme.Palette.ERROR,
-    )
+    private val brickPalette: Array<Color>
+        get() = game.prefs.currentPaletteSkin().colors
 
     init {
         loadDemoLevel()
@@ -146,11 +140,12 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
         }
 
         val p = demoState.paddle
-        PlayfieldRenderer.capsule(shapes, p.x, p.y, p.width, p.height, Theme.Palette.SECONDARY_CONTAINER)
+        PlayfieldRenderer.capsule(shapes, p.x, p.y, p.width, p.height, game.prefs.currentPaddleSkin().color)
 
+        val ballSkin = game.prefs.currentBallSkin()
         for (ball in demoState.balls) {
             PlayfieldRenderer.ballTrail(shapes, ball.trailX, ball.trailY, ball.trailHead, ball.trailCount, ball.radius)
-            PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius)
+            PlayfieldRenderer.glowBall(shapes, ball.x, ball.y, ball.radius, ballSkin.core, ballSkin.halo)
         }
 
         shapes.end()
