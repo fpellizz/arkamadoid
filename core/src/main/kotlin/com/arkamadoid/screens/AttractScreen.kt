@@ -125,7 +125,7 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
         demoState.currentLevel?.bricks?.forEach { brick ->
             if (!brick.alive) return@forEach
             if (brick.type == Brick.Type.INDESTRUCTIBLE) {
-                PlayfieldRenderer.steelBrick(shapes, brick.x + 0.5f, brick.y + 0.5f, brick.width - 1f, brick.height - 1f, cornerRadius = 1f)
+                PlayfieldRenderer.steelBrick(shapes, brick.x + 1f, brick.y + 1f, brick.width - 2f, brick.height - 2f, cornerRadius = 1f)
             } else {
                 val base = brickPalette[brick.colorIndex % brickPalette.size]
                 val maxHp = brick.type.hp.coerceAtLeast(1)
@@ -135,10 +135,10 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
                 else base
                 PlayfieldRenderer.glowRect(
                     shapes,
-                    brick.x + 1f, brick.y + 0.5f,
-                    brick.width - 2f, brick.height - 1f,
+                    brick.x + 1.5f, brick.y + 1f,
+                    brick.width - 3f, brick.height - 2f,
                     col,
-                    cornerRadius = 1.5f,
+                    cornerRadius = 1.25f,
                 )
             }
         }
