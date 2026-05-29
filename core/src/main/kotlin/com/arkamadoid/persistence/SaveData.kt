@@ -5,7 +5,10 @@ import com.arkamadoid.input.InputMode
 data class SaveData(
     val highScores: MutableList<HighScoreEntry> = mutableListOf(),
     var unlockedLevel: Int = 1,
-    var unlockedSkins: MutableSet<String> = mutableSetOf("default"),
+    var unlockedSkins: MutableSet<String> = mutableSetOf(),
+    var selectedPaddleSkin: String = "paddle_default",
+    var selectedBallSkin: String = "ball_default",
+    var selectedPaletteSkin: String = "palette_default",
     var unlockedAchievements: MutableSet<String> = mutableSetOf(),
     var musicVolume: Float = 0.7f,
     var sfxVolume: Float = 0.9f,

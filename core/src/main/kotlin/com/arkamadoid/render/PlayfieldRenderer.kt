@@ -86,12 +86,20 @@ object PlayfieldRenderer {
     }
 
     /**
-     * Glow ball: alone esterno pink chiaro (largo, soffuso) + alone bianco medio + core bianco.
-     * Replica `box-shadow: 0 0 20px #fff, 0 0 40px #fface8`.
+     * Glow ball: alone esterno colorato (largo, soffuso) + alone bianco medio + core
+     * pieno. Default replica `box-shadow: 0 0 20px #fff, 0 0 40px #fface8`. Core e
+     * halo configurabili via skin (vedi BallSkin).
      */
-    fun glowBall(shapes: ShapeRenderer, cx: Float, cy: Float, r: Float) {
-        // alone esterno pink soffuso, alone medio bianco, alone interno luminoso, core
-        tmp.set(Theme.Palette.PRIMARY).also { it.a = 0.20f }
+    fun glowBall(
+        shapes: ShapeRenderer,
+        cx: Float,
+        cy: Float,
+        r: Float,
+        core: Color = Color.WHITE,
+        halo: Color = Theme.Palette.PRIMARY,
+    ) {
+        // alone esterno halo soffuso, alone medio bianco, alone interno luminoso, core
+        tmp.set(halo).also { it.a = 0.20f }
         shapes.color = tmp
         shapes.circle(cx, cy, r * 2.5f, 18)
         tmp.set(Color.WHITE).also { it.a = 0.30f }
@@ -100,7 +108,7 @@ object PlayfieldRenderer {
         tmp.set(Color.WHITE).also { it.a = 0.65f }
         shapes.color = tmp
         shapes.circle(cx, cy, r * 1.2f, 14)
-        shapes.color = Color.WHITE
+        shapes.color = core
         shapes.circle(cx, cy, r, 14)
     }
 
