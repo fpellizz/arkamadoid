@@ -60,6 +60,7 @@ class GameplayScreen(
     private val tmpColor = Color()
     private val pauseRect = Rectangle(UI_W - 170f, 40f, 130f, 100f)
     private val zeroGravRect = Rectangle(40f, 40f, 130f, 100f)
+    private val dajeRect = Rectangle((UI_W - 260f) / 2f, 40f, 260f, 100f)
     private val scoreCardRect = Rectangle(40f, UI_H - 200f, 220f, 130f)
     private val sectorCardRect = Rectangle((UI_W - 200f) / 2f, UI_H - 200f, 200f, 130f)
     private val integrityCardRect = Rectangle(UI_W - 260f, UI_H - 200f, 220f, 130f)
@@ -82,6 +83,14 @@ class GameplayScreen(
     private var ballsLostThisLevel = 0
     private var powerUpsThisLevel = 0
     private var lastShownComboMultiplier = 1
+
+    // transizione di livello: fade-out + burst + load + fade-in
+    private var levelTransitionRemaining = 0f
+    private var levelTransitionPendingIndex = -1
+
+    /** Una palla è "stuck orizzontale" se da > 12s viaggia con quasi-zero vy. */
+    private val dajeVisible: Boolean
+        get() = state.balls.any { !it.stuckToPaddle && it.horizontalStuckTime > HORIZONTAL_STUCK_THRESHOLD }
 
     private var shakeMagnitude = 0f
     private var shakeRemaining = 0f
@@ -124,7 +133,7 @@ class GameplayScreen(
             state.currentLevel = null
         }
         if (state.currentLevel == null) loadLevel(state.levelIndex)
-        game.audio.playMusic(MusicTrack.GAMEPLAY_EARLY)
+        // music è gestita interamente da loadLevel (boss vs cicling gameplay)
     }
 
     private fun loadLevel(index: Int) {
@@ -140,7 +149,13 @@ class GameplayScreen(
         powerUpsThisLevel = 0
         lastShownComboMultiplier = 1
         positionPaddleAndBall()
-        if (level.boss != null) game.audio.playMusic(MusicTrack.BOSS)
+        // music: BOSS room ha la sua track, gli altri livelli ciclano sulle 3
+        // gameplay track per dare varietà di livello in livello
+        if (level.boss != null) {
+            game.audio.playMusic(MusicTrack.BOSS)
+        } else {
+            game.audio.playMusic(GAMEPLAY_TRACKS[(index - 1).mod(GAMEPLAY_TRACKS.size)])
+        }
         // ENDLESS_30: appena entri nel sector 30+ in ENDLESS
         if (mode == GameMode.ENDLESS && index >= 30) tryUnlockAchievement(Achievement.ENDLESS_30)
     }
@@ -190,6 +205,14 @@ class GameplayScreen(
             game.setScreen(PauseScreen(game, this))
             return
         }
+        // durante la transizione di livello non gestire input né fisica;
+        // tick il timer, swappa il livello a metà (fade-out → fade-in)
+        if (levelTransitionRemaining > 0f) {
+            advanceLevelTransition(delta)
+            if (shakeRemaining > 0f) shakeRemaining -= delta
+            particles.update(delta)
+            return
+        }
         handleInput()
         if (disposed || state.paused) return
         if (shakeRemaining > 0f) shakeRemaining -= delta
@@ -228,6 +251,10 @@ class GameplayScreen(
             if (mode == GameMode.PRACTICE && zeroGravRect.contains(tmpUi.x, tmpUi.y)) {
                 practiceZeroGEnabled = !practiceZeroGEnabled
                 game.audio.playSfx(AudioManager.Sfx.POWERUP, pitch = if (practiceZeroGEnabled) 1.2f else 0.8f)
+                return
+            }
+            if (dajeVisible && dajeRect.contains(tmpUi.x, tmpUi.y)) {
+                recallBalls()
                 return
             }
             if (skipSectorRect.contains(tmpUi.x, tmpUi.y)) {
@@ -334,6 +361,19 @@ class GameplayScreen(
             }
 
             if (ball.blackBallRemaining > 0f) ball.blackBallRemaining -= dt
+
+            // accumula timer "quasi orizzontale" per il bottone DAJE!
+            if (!ball.stuckToPaddle) {
+                val v = ball.velocity.len()
+                val vyAbs = kotlin.math.abs(ball.velocity.y)
+                if (v > 0.001f && vyAbs / v < HORIZONTAL_STUCK_VY_RATIO) {
+                    ball.horizontalStuckTime += dt
+                } else {
+                    ball.horizontalStuckTime = 0f
+                }
+            } else {
+                ball.horizontalStuckTime = 0f
+            }
         }
 
         level.boss?.takeIf { it.alive }?.update(dt)
@@ -573,8 +613,66 @@ class GameplayScreen(
             game.setScreen(GameOverScreen(game, state.score, state.levelIndex, mode = mode.name, bestCombo = state.bestComboThisRun))
             return
         }
-        state.levelIndex = next
-        loadLevel(next)
+        // arma la transizione: fade-out + burst, swap a metà timer, fade-in
+        levelTransitionPendingIndex = next
+        levelTransitionRemaining = LEVEL_TRANSITION_DURATION
+        triggerLevelClearBurst()
+    }
+
+    /**
+     * Tick del timer di transizione. A metà del timer (midpoint) carica il livello
+     * pending — così il fade-out copre il vecchio livello, il load avviene al nero,
+     * e il fade-in svela quello nuovo.
+     */
+    private fun advanceLevelTransition(delta: Float) {
+        val before = levelTransitionRemaining
+        levelTransitionRemaining -= delta
+        val midpoint = LEVEL_TRANSITION_DURATION / 2f
+        if (before > midpoint && levelTransitionRemaining <= midpoint && levelTransitionPendingIndex > 0) {
+            state.levelIndex = levelTransitionPendingIndex
+            loadLevel(state.levelIndex)
+        }
+        if (levelTransitionRemaining <= 0f) {
+            levelTransitionRemaining = 0f
+            levelTransitionPendingIndex = -1
+        }
+    }
+
+    /**
+     * Richiama tutte le palle al paddle: posizione stuck, velocità zero, trail
+     * pulito. Usato dal bottone DAJE! quando la palla si è bloccata in un loop
+     * orizzontale.
+     */
+    private fun recallBalls() {
+        val p = state.paddle
+        for (b in state.balls) {
+            b.x = p.x + p.width / 2f
+            b.y = p.y + p.height + b.radius + 1f
+            b.velocity.set(0f, 0f)
+            b.stuckToPaddle = true
+            b.horizontalStuckTime = 0f
+            b.clearTrail()
+        }
+        game.audio.playSfx(AudioManager.Sfx.POWERUP, pitch = 1.5f)
+    }
+
+    /** Fuochi d'artificio multi-punto + screen shake per celebrare la fine del livello. */
+    private fun triggerLevelClearBurst() {
+        val reduceMotion = game.prefs.data.reduceMotion
+        val burstsCount = if (reduceMotion) 3 else 8
+        val particlesPerBurst = if (reduceMotion) 4 else 10
+        val palette = brickPalette
+        repeat(burstsCount) {
+            val bx = Random.nextFloat() * playFieldWidth
+            val by = playFieldHeight * 0.3f + Random.nextFloat() * playFieldHeight * 0.55f
+            val col = palette[Random.nextInt(palette.size)]
+            particles.burstAt(bx, by, col, particlesPerBurst)
+        }
+        if (!reduceMotion) {
+            shakeMagnitude = SHAKE_INTENSITY_LIGHT
+            shakeRemaining = SHAKE_DURATION_HEAVY
+        }
+        game.audio.playSfx(AudioManager.Sfx.COIN, pitch = 1.2f)
     }
 
     private fun recordDailyAndExit() {
@@ -858,6 +956,20 @@ class GameplayScreen(
         shapes.rect(cx - barW - 8f, cy - barH / 2f, barW, barH)
         shapes.rect(cx + 8f, cy - barH / 2f, barW, barH)
 
+        // bottone DAJE!: bordo verde glow + sfondo semi-trasparente come hud card
+        if (dajeVisible) {
+            tmpColor.set(Theme.Palette.SURFACE_CONTAINER_LOW).also { it.a = 0.85f }
+            shapes.color = tmpColor
+            shapes.rect(dajeRect.x, dajeRect.y, dajeRect.width, dajeRect.height)
+            // 4 barre verdi che fanno da bordo (no Line mode disponibile qui, siamo in Filled)
+            val t = 3f
+            shapes.color = Theme.Palette.NEON_GREEN
+            shapes.rect(dajeRect.x, dajeRect.y, dajeRect.width, t)                                  // bottom
+            shapes.rect(dajeRect.x, dajeRect.y + dajeRect.height - t, dajeRect.width, t)            // top
+            shapes.rect(dajeRect.x, dajeRect.y, t, dajeRect.height)                                 // left
+            shapes.rect(dajeRect.x + dajeRect.width - t, dajeRect.y, t, dajeRect.height)            // right
+        }
+
         shapes.end()
 
         // text overlay
@@ -920,12 +1032,26 @@ class GameplayScreen(
             )
         }
 
-        // hint footer "SENSORS ACTIVE   SLIDE TO STEER"
-        val hintFont = game.fonts[Theme.FontSize.LABEL_SM, true]
-        hintFont.color = Theme.Palette.SECONDARY_FIXED_DIM
-        val hint = "SENSORS ACTIVE   SLIDE TO STEER"
-        layout.setText(hintFont, hint)
-        hintFont.draw(batch, hint, (UI_W - layout.width) / 2f, 80f)
+        // hint footer "SENSORS ACTIVE   SLIDE TO STEER" — nascosto se è visibile il DAJE
+        if (!dajeVisible) {
+            val hintFont = game.fonts[Theme.FontSize.LABEL_SM, true]
+            hintFont.color = Theme.Palette.SECONDARY_FIXED_DIM
+            val hint = "SENSORS ACTIVE   SLIDE TO STEER"
+            layout.setText(hintFont, hint)
+            hintFont.draw(batch, hint, (UI_W - layout.width) / 2f, 80f)
+        } else {
+            // bottone DAJE!: testo verde grande, centrato dentro al rect
+            val dajeFont = game.fonts[Theme.FontSize.HEADLINE, true]
+            dajeFont.color = Theme.Palette.NEON_GREEN
+            val dajeTxt = "DAJE!"
+            layout.setText(dajeFont, dajeTxt)
+            dajeFont.draw(
+                batch,
+                dajeTxt,
+                dajeRect.x + (dajeRect.width - layout.width) / 2f,
+                dajeRect.y + (dajeRect.height + layout.height) / 2f,
+            )
+        }
 
         // marker DAILY (sostituisce il SECTOR number nel HUD-top? no: aggiungo sopra il SECTOR card)
         if (mode == GameMode.DAILY) {
@@ -1015,6 +1141,27 @@ class GameplayScreen(
         batch.end()
         Gdx.gl.glDisable(GL20.GL_BLEND)
 
+        // fade overlay durante level transition (sopra al gameplay, sotto al bezel)
+        if (levelTransitionRemaining > 0f) {
+            val midpoint = LEVEL_TRANSITION_DURATION / 2f
+            val alpha = if (levelTransitionRemaining > midpoint) {
+                // fade-out: alpha sale da 0 a 1 nella prima metà
+                1f - (levelTransitionRemaining - midpoint) / midpoint
+            } else {
+                // fade-in: alpha scende da 1 a 0 nella seconda metà
+                levelTransitionRemaining / midpoint
+            }.coerceIn(0f, 1f)
+            Gdx.gl.glEnable(GL20.GL_BLEND)
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA)
+            shapes.projectionMatrix = uiViewport.camera.combined
+            shapes.begin(ShapeRenderer.ShapeType.Filled)
+            tmpColor.set(0f, 0f, 0f, alpha)
+            shapes.color = tmpColor
+            shapes.rect(0f, 0f, UI_W, UI_H)
+            shapes.end()
+            Gdx.gl.glDisable(GL20.GL_BLEND)
+        }
+
         com.arkamadoid.render.BezelFrame.draw(shapes, uiViewport, UI_W, UI_H)
     }
 
@@ -1050,6 +1197,16 @@ class GameplayScreen(
         const val BOSS_HIT_SCORE = 75
         const val BOSS_KILL_SCORE = 5000
         const val ACHIEVEMENT_POPUP_LIFETIME = 3.0f
+        const val LEVEL_TRANSITION_DURATION = 1.0f
+        const val HORIZONTAL_STUCK_THRESHOLD = 12.0f
+        const val HORIZONTAL_STUCK_VY_RATIO = 0.15f
+
+        /** Tracce gameplay ciclate per dare varietà di livello in livello. */
+        private val GAMEPLAY_TRACKS = arrayOf(
+            MusicTrack.GAMEPLAY_EARLY,
+            MusicTrack.GAMEPLAY_MID,
+            MusicTrack.GAMEPLAY_LATE,
+        )
 
         /**
          * Bitmap font 3x5 dei codici power-up. Cell encoding: byte con high nibble

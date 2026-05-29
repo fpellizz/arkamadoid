@@ -24,6 +24,10 @@ class Ball(
     /** Quando true (es. dopo SLOW power-up) il trail non viene più alimentato. */
     var trailDisabled: Boolean = false
 
+    /** Secondi accumulati di moto "quasi orizzontale" (|vy|/|v| < soglia).
+     *  Usato dalla GameplayScreen per far apparire il bottone DAJE! quando supera 12s. */
+    var horizontalStuckTime: Float = 0f
+
     fun setDirectionDeg(angleDeg: Float) {
         val rad = Math.toRadians(angleDeg.toDouble())
         velocity.set(Math.sin(rad).toFloat(), Math.cos(rad).toFloat()).nor().scl(speed)
