@@ -140,13 +140,27 @@ class GameOverScreen(
     }
 
     private fun drawInitialsPrompt() {
+        val cur = letterRects[cursorIndex]
+        val pulse = 1f + kotlin.math.sin(elapsed * 6f) * 0.15f
+
+        // PASS 1: filled — bottoni ball-top stile Sanwa per +/-, glow background slot attivo
+        shapes.begin(ShapeRenderer.ShapeType.Filled)
+        // halo del letter slot attivo (pulsa leggermente)
+        shapes.color = Theme.Palette.TERTIARY
+        val haloPad = 8f * pulse
+        shapes.rect(cur.x - haloPad, cur.y - haloPad, cur.width + haloPad * 2f, 3f)
+        shapes.rect(cur.x - haloPad, cur.y + cur.height + haloPad - 3f, cur.width + haloPad * 2f, 3f)
+        shapes.rect(cur.x - haloPad, cur.y - haloPad, 3f, cur.height + haloPad * 2f)
+        shapes.rect(cur.x + cur.width + haloPad - 3f, cur.y - haloPad, 3f, cur.height + haloPad * 2f)
+        // ball-top knobs
+        drawBallTopKnob(upArrowRect, Theme.Palette.SECONDARY_CONTAINER)
+        drawBallTopKnob(downArrowRect, Theme.Palette.SECONDARY_CONTAINER)
+        shapes.end()
+
+        // PASS 2: outline confirm + rect del cursore
         shapes.begin(ShapeRenderer.ShapeType.Line)
         shapes.color = Theme.Palette.PRIMARY_CONTAINER
         shapes.rect(confirmRect.x, confirmRect.y, confirmRect.width, confirmRect.height)
-        shapes.color = Theme.Palette.SECONDARY_CONTAINER
-        shapes.rect(upArrowRect.x, upArrowRect.y, upArrowRect.width, upArrowRect.height)
-        shapes.rect(downArrowRect.x, downArrowRect.y, downArrowRect.width, downArrowRect.height)
-        val cur = letterRects[cursorIndex]
         shapes.color = Theme.Palette.TERTIARY
         shapes.rect(cur.x, cur.y, cur.width, cur.height)
         shapes.end()
@@ -174,7 +188,7 @@ class GameOverScreen(
         }
 
         val arrowFont = game.fonts[Theme.FontSize.HEADLINE, true]
-        arrowFont.color = Theme.Palette.SECONDARY_CONTAINER
+        arrowFont.color = Theme.Palette.ON_SECONDARY
         layout.setText(arrowFont, "+")
         arrowFont.draw(batch, "+", upArrowRect.x + (upArrowRect.width - layout.width) / 2f, upArrowRect.y + upArrowRect.height / 2f + layout.height / 2f)
         layout.setText(arrowFont, "-")
@@ -215,6 +229,29 @@ class GameOverScreen(
         } else if (elapsed > 1.0f) {
             game.setScreen(MainMenuScreen(game))
         }
+    }
+
+    /**
+     * Disegna un bottone arcade stile ball-top Sanwa: cerchio scuro outer (rim),
+     * cerchio body colorato, highlight bianco specular in alto a sinistra.
+     * La freccia +/- viene disegnata in batch.begin() come testo sopra il knob.
+     */
+    private fun drawBallTopKnob(rect: Rectangle, bodyColor: com.badlogic.gdx.graphics.Color) {
+        val cx = rect.x + rect.width / 2f
+        val cy = rect.y + rect.height / 2f
+        val r = minOf(rect.width, rect.height) / 2f - 6f
+        // rim scuro outer
+        shapes.color = Theme.Palette.SURFACE_CONTAINER_HIGH
+        shapes.circle(cx, cy, r + 6f, 24)
+        // bordo accent
+        shapes.color = Theme.Palette.OUTLINE
+        shapes.circle(cx, cy, r + 3f, 24)
+        // body principale
+        shapes.color = bodyColor
+        shapes.circle(cx, cy, r, 24)
+        // specular highlight (cerchietto bianco offset top-left)
+        shapes.color = com.badlogic.gdx.graphics.Color.WHITE
+        shapes.circle(cx - r * 0.35f, cy + r * 0.35f, r * 0.22f, 16)
     }
 
     private fun shiftLetter(delta: Int) {
