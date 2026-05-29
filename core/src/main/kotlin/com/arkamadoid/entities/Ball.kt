@@ -21,6 +21,8 @@ class Ball(
     val trailY: FloatArray = FloatArray(TRAIL_SIZE)
     var trailHead: Int = 0
     var trailCount: Int = 0
+    /** Quando true (es. dopo SLOW power-up) il trail non viene più alimentato. */
+    var trailDisabled: Boolean = false
 
     fun setDirectionDeg(angleDeg: Float) {
         val rad = Math.toRadians(angleDeg.toDouble())
@@ -28,6 +30,7 @@ class Ball(
     }
 
     fun pushTrail() {
+        if (trailDisabled) return
         trailX[trailHead] = x
         trailY[trailHead] = y
         trailHead = (trailHead + 1) % TRAIL_SIZE

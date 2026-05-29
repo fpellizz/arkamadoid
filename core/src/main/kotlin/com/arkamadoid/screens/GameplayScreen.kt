@@ -486,6 +486,10 @@ class GameplayScreen(
                     if (!b.stuckToPaddle && b.velocity.len2() > 0f) {
                         b.velocity.nor().scl(b.speed)
                     }
+                    // SLOW spegne il trail: la palla è abbastanza lenta da non aver
+                    // bisogno della "coda di cometa" che dà senso del movimento
+                    b.trailDisabled = true
+                    b.clearTrail()
                 }
             }
             PowerUpType.MULTI -> spawnMultiball()
@@ -521,6 +525,7 @@ class GameplayScreen(
             val b = Ball(template.x, template.y, template.radius)
             b.speed = template.speed
             b.stuckToPaddle = false
+            b.trailDisabled = template.trailDisabled // eredita stato SLOW
             val offset = if (i == 0) -25f else 25f
             val currentAngleRad = kotlin.math.atan2(template.velocity.x, template.velocity.y)
             val newAngleDeg = Math.toDegrees(currentAngleRad.toDouble()).toFloat() + offset
@@ -631,7 +636,8 @@ class GameplayScreen(
      */
     private fun drawPowerUpGlyph(pu: PowerUp) {
         val pattern = POWERUP_GLYPHS[pu.type.code] ?: return
-        shapes.color = Color.BLACK
+        // BLACKBALL: corpo scuro → glyph bianco. Tutti gli altri: glyph nero.
+        shapes.color = if (pu.type == PowerUpType.BLACKBALL) Color.WHITE else Color.BLACK
         // pill 16x8, glyph 3x5: centro orizzontale a x+6.5, top at pu.y+6 (bottom at pu.y+1)
         val baseX = pu.x + 6.5f
         val baseTopY = pu.y + 6f
@@ -727,15 +733,20 @@ class GameplayScreen(
 
         shapes.begin(ShapeRenderer.ShapeType.Filled)
 
-        // bricks (con glow, 1px gap per separazione visiva)
+        // bricks (con glow, padding minimo per render più "ciccione" che riempie la cella)
         state.currentLevel?.bricks?.forEach { brick ->
             if (!brick.alive) return@forEach
             if (brick.type == Brick.Type.INDESTRUCTIBLE) {
-                PlayfieldRenderer.steelBrick(shapes, brick.x + 1f, brick.y + 1f, brick.width - 2f, brick.height - 2f, cornerRadius = 0.5f)
+                PlayfieldRenderer.steelBrick(shapes, brick.x + 1f, brick.y + 1f, brick.width - 2f, brick.height - 2f, cornerRadius = 1f)
             } else {
                 val base = brickColorOf(brick)
-                val col = if (brick.hp < brick.type.hp) damagedTint.set(base).lerp(Color.WHITE, 0.35f) else base
-                PlayfieldRenderer.glowRect(shapes, brick.x + 2f, brick.y + 1.5f, brick.width - 4f, brick.height - 3f, col, cornerRadius = 1f)
+                // damage gradient: hp pieno → colore puro, hp giù → progressivamente bianco
+                val maxHp = brick.type.hp.coerceAtLeast(1)
+                val damageRatio = if (maxHp > 1) (1f - brick.hp.toFloat() / maxHp) else 0f
+                val col = if (damageRatio > 0f)
+                    damagedTint.set(base).lerp(Color.WHITE, damageRatio * 0.85f)
+                else base
+                PlayfieldRenderer.glowRect(shapes, brick.x + 1.5f, brick.y + 1f, brick.width - 3f, brick.height - 2f, col, cornerRadius = 1.25f)
             }
         }
 
@@ -787,6 +798,14 @@ class GameplayScreen(
         // power-up drops (con glow + lettera identificativa)
         for (pu in droppingPowerUps) {
             PlayfieldRenderer.glowRect(shapes, pu.x, pu.y, 16f, 8f, powerUpColor(pu.type))
+            // BLACKBALL ha corpo scurissimo: aggiungo outline bianco per renderlo visibile
+            if (pu.type == PowerUpType.BLACKBALL) {
+                shapes.color = Color.WHITE
+                shapes.rect(pu.x - 1f, pu.y - 1f, 18f, 1f)        // bottom
+                shapes.rect(pu.x - 1f, pu.y + 8f, 18f, 1f)        // top
+                shapes.rect(pu.x - 1f, pu.y - 1f, 1f, 10f)        // left
+                shapes.rect(pu.x + 16f, pu.y - 1f, 1f, 10f)       // right
+            }
             drawPowerUpGlyph(pu)
         }
 

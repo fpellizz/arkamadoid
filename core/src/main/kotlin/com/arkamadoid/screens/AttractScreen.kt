@@ -125,16 +125,20 @@ class AttractScreen(game: ArkamadoidGame) : BaseScreen(game) {
         demoState.currentLevel?.bricks?.forEach { brick ->
             if (!brick.alive) return@forEach
             if (brick.type == Brick.Type.INDESTRUCTIBLE) {
-                PlayfieldRenderer.steelBrick(shapes, brick.x + 1f, brick.y + 1f, brick.width - 2f, brick.height - 2f, cornerRadius = 0.5f)
+                PlayfieldRenderer.steelBrick(shapes, brick.x + 1f, brick.y + 1f, brick.width - 2f, brick.height - 2f, cornerRadius = 1f)
             } else {
                 val base = brickPalette[brick.colorIndex % brickPalette.size]
-                val col = if (brick.hp < brick.type.hp) damagedTint.set(base).lerp(Color.WHITE, 0.35f) else base
+                val maxHp = brick.type.hp.coerceAtLeast(1)
+                val damageRatio = if (maxHp > 1) (1f - brick.hp.toFloat() / maxHp) else 0f
+                val col = if (damageRatio > 0f)
+                    damagedTint.set(base).lerp(Color.WHITE, damageRatio * 0.85f)
+                else base
                 PlayfieldRenderer.glowRect(
                     shapes,
-                    brick.x + 2f, brick.y + 1.5f,
-                    brick.width - 4f, brick.height - 3f,
+                    brick.x + 1.5f, brick.y + 1f,
+                    brick.width - 3f, brick.height - 2f,
                     col,
-                    cornerRadius = 1f,
+                    cornerRadius = 1.25f,
                 )
             }
         }
